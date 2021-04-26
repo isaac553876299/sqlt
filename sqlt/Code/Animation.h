@@ -1,10 +1,7 @@
 #ifndef __ANIMATION_H__
 #define __ANIMATION_H__
 
-#include "SDL.h"
-#include "SDL_image.h"
-
-extern SDL_Renderer* renderer;
+#include "Draw.h"
 
 class Animation
 {
@@ -18,9 +15,9 @@ public:
 	float currentFrame;
 	unsigned int totalFrames;
 
-	Animation(const char* path, float _speed = 0.1f, bool _loop = true, unsigned int max = 10)
+	Animation(const char* texture_file_path, float _speed = 0.1f, bool _loop = true, unsigned int max = 10)
 	{
-		texture = IMG_LoadTexture(renderer, path);
+		texture = LoadTexture(texture_file_path);
 		speed = _speed;
 		loop = _loop;
 		frame = new SDL_Rect[max];
@@ -52,7 +49,7 @@ public:
 
 	void Draw()
 	{
-		if (&frame[int(currentFrame)]) SDL_RenderCopy(renderer, texture, &frame[int(currentFrame)], 0);
+		if (&frame[int(currentFrame)]) RenderCopy(texture, &frame[int(currentFrame)], { 0,0,100,100 });
 	}
 
 };

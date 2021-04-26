@@ -5,16 +5,16 @@
 #include "Draw.h"
 
 extern SDL_Renderer* renderer;
+extern float dt;
+extern int* mouse;
+extern int* keyboard;
 
 class Scene
 {
 public:
-
 	Scene() {}
 	~Scene() {}
-
-	virtual bool Update(float dt) { return false; }
-
+	virtual bool Update() { return false; }
 	virtual void Draw() {}
 };
 
@@ -32,7 +32,7 @@ public:
 	SceneManager(int id);
 	~SceneManager();
 
-	void Update(float dt, int* mouse, int* keyboard);
+	void Update();
 
 	void Fade(int id);
 };
@@ -48,14 +48,14 @@ SceneManager::~SceneManager()
 	scene = nullptr;
 }
 
-void SceneManager::Update(float dt, int* mouse, int* keyboard)
+void SceneManager::Update()
 {
 	if (keyboard[SDL_SCANCODE_ESCAPE] == 1);// isActive = false;
 	if (keyboard[SDL_SCANCODE_0] == 1) Fade(0);
 	if (keyboard[SDL_SCANCODE_1] == 1) Fade(1);
 	if (keyboard[SDL_SCANCODE_2] == 1) Fade(2);
 
-	if (scene) scene->Update(dt);
+	if (scene) scene->Update();
 	if (fad)
 	{
 		if (alpha > 0) alpha -= 100.0f * dt;

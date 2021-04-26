@@ -11,7 +11,23 @@
 #include "SDL_mixer.h"
 #include "Scenes.h"
 
-extern SDL_Renderer* renderer;
+//------------------------------------------------------------------------------------------------- SHARE
+
+SDL_Renderer* renderer = nullptr;
+
+int* mouse = nullptr;
+int* keyboard = nullptr;
+
+float dt;
+
+float scale;
+
+float camerax;
+float cameray;
+
+TTF_Font* fonts[3];
+
+//------------------------------------------------------------------------------------------------- SHARE
 
 class App
 {
@@ -21,25 +37,18 @@ public:
 
 	SDL_Window* window = nullptr;
 
-	SDL_Rect camera;
-	float scale;
 	bool windowShown;
 
-	float camerax;
-	float cameray;
 	float offsetx;
 	float offsety;
 
 	float _dt;
-	float dt;
 	Timer timer;
-
-	int* mouse = nullptr;
-	int* keyboard = nullptr;
+	Timer seconds_count;
+	unsigned int fps_count = 0;
+	unsigned int delays_forced = 0;
 
 	SceneManager* sceneManager = nullptr;
-
-	TTF_Font* font = nullptr;
 
 	App();
 	~App();
@@ -55,8 +64,8 @@ App::App()
 	IMG_Init(IMG_INIT_PNG);
 	//Mix_Init();
 	TTF_Init();
-
-	font = TTF_OpenFont("Assets/Fonts/Wedgie Regular.ttf", 36);
+	fonts[0] = TTF_OpenFont("Assets/Fonts/Name Here.ttf", 36);
+	fonts[1] = TTF_OpenFont("Assets/Fonts/Wedgie Regular.ttf", 36);
 
 	pugi::xml_document config_doc;
 	pugi::xml_node config_node;
@@ -83,7 +92,6 @@ App::App()
 	renderer = SDL_CreateRenderer(window, -1, renderFlags);
 	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 
-	camera = { 0,0,int(width),int(height) };
 	camerax = 0.0f;
 	cameray = 0.0f;
 	offsetx = 0.0f;
@@ -172,9 +180,19 @@ bool App::Update()
 	//(_dt - dt > 0)
 	if (dt < _dt)
 	{
-		SDL_Delay(_dt - dt);
+		SDL_Delay((_dt - dt) * 1000);
+		++delays_forced;
 	}
 
+	++fps_count;
+	if (seconds_count.ReadS() > 1)
+	{
+		seconds_count.Start();
+		system("cls");
+		printf("%d___%d", fps_count, delays_forced);
+		fps_count = 0;
+		delays_forced = 0;
+	}
 	/*static char title[256];
 	sprintf_s(title, 256, " | dt: %.3f | ", dt);
 	SDL_SetWindowTitle(window, title);*/
@@ -184,11 +202,11 @@ bool App::Update()
 	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 	SDL_RenderClear(renderer);
 
-	sceneManager->Update(dt, mouse, keyboard);
+	sceneManager->Update();
 
 	//--------------------------------------------------------------------------------------------- DEBUG
 
-	const unsigned int size = 512;
+	/*const unsigned int size = 512;
 	char debug[size];
 	sprintf_s(debug, size, "dt: %.3f", dt);
 	DrawFont(font, { 255,255,255,255 }, 0, 0, 1, 100, 100, 1, debug);
@@ -204,7 +222,10 @@ bool App::Update()
 	{
 		sprintf_s(debug, size, "mouse[%d]: %d", i, mouse[i]);
 		DrawFont(font, { 255,255,255,255 }, 0, 0, 1, 100, 350 + 50 * i, 1, debug);
-	}
+	}*/
+
+	DrawFont(100, 100, 1, GetText("%.3f___%.3f", dt, _dt), { 255,0,0,255 }, 1);
+
 	//moust create log-like DrawFont()
 	SDL_RenderPresent(renderer);
 
