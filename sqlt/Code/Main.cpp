@@ -1,6 +1,7 @@
 #include "App.h"
 
 SDL_Renderer* renderer = nullptr;
+//float scale;
 
 int main(int argc, char** argv)
 {

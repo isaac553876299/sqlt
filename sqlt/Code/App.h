@@ -89,7 +89,7 @@ App::App()
 	offsetx = 0.0f;
 	offsety = 0.0f;
 
-	mouse = (int*)calloc(7, sizeof(int));
+	mouse = (int*)calloc(5, sizeof(int));
 	keyboard = (int*)calloc(200, sizeof(int));
 
 	sceneManager = new SceneManager(1);
@@ -112,14 +112,15 @@ App::~App()
 
 bool App::Update()
 {
-	/*
-	//if (mouse[2] == 1) mouse[2] = 2;
-	//if (mouse[3] == 1) mouse[3] = 2;
-	//if (mouse[2] == 3) mouse[2] = 0;
-	//if (mouse[3] == 3) mouse[3] = 0;
+	//--------------------------------------------------------------------------------------------- INPUT
 
-	SDL_GetMouseState(&mouse[0], &mouse[1]);
-	SDL_GetRelativeMouseState(&mouse[0], &mouse[1]);
+	int keyMap[2][4] = { 0,3,3,0,1,2,2,1 };
+
+	const Uint8* keyboardState = SDL_GetKeyboardState(0);
+	for (int i = 0; i < 200; ++i) keyboard[i] = keyMap[int(keyboardState[i])][keyboard[i]];
+
+	Uint32 mouseState = SDL_GetMouseState(&mouse[0], &mouse[1]);
+	for (int i = 2; i < 5; ++i) mouse[i] = keyMap[int((SDL_BUTTON(i - 1) & mouseState) > 0)][mouse[i]];
 
 	SDL_Event event;
 	while (SDL_PollEvent(&event))
@@ -128,91 +129,20 @@ bool App::Update()
 		case SDL_QUIT:
 			isActive = false;
 			break;
-		case SDL_MOUSEBUTTONDOWN:
-			//if (event.button.button == SDL_BUTTON_LEFT) mouse[2] = 1;
-			//if (event.button.button == SDL_BUTTON_RIGHT) mouse[3] = 1;
-			//if (event.button.button == SDL_BUTTON_MIDDLE) scale = 1.0f;
-			//mouse[event.button.button - 1 + 2] = 1;
+		case SDL_WINDOWEVENT_HIDDEN:
+		case SDL_WINDOWEVENT_MINIMIZED:
+		case SDL_WINDOWEVENT_FOCUS_LOST:
+			windowShown = false;
 			break;
-		case SDL_MOUSEBUTTONUP:
-			//if (event.button.button == SDL_BUTTON_LEFT) mouse[2] = 3;
-			//if (event.button.button == SDL_BUTTON_RIGHT) mouse[3] = 3;
-			//mouse[event.button.button - 1 + 2] = 3;
+		case SDL_WINDOWEVENT_SHOWN:
+		case SDL_WINDOWEVENT_MAXIMIZED:
+		case SDL_WINDOWEVENT_FOCUS_GAINED:
+		case SDL_WINDOWEVENT_RESTORED:
+			windowShown = true;
 			break;
 		case SDL_MOUSEWHEEL:
 			//if (event.wheel.y > 0) scale += 0.1f;
 			//if (event.wheel.y < 0) scale -= 0.1f;
-			break;
-		case SDL_WINDOWEVENT_HIDDEN:
-		case SDL_WINDOWEVENT_MINIMIZED:
-		case SDL_WINDOWEVENT_FOCUS_LOST:
-			windowShown = false;
-			break;
-		case SDL_WINDOWEVENT_SHOWN:
-		case SDL_WINDOWEVENT_MAXIMIZED:
-		case SDL_WINDOWEVENT_FOCUS_GAINED:
-		case SDL_WINDOWEVENT_RESTORED:
-			windowShown = true;
-			break;
-		case SDL_MOUSEMOTION:
-			/*data.mouseMotion.x = event.motion.xrel / scale;
-			data.mouseMotion.y = event.motion.yrel / scale;
-			data.mousePosition.x = event.motion.x / scale;
-			data.mousePosition.y = event.motion.y / scale;
-			break;
-		}
-
-	const Uint8* keys = SDL_GetKeyboardState(0);
-
-	int keyMap[2][4] = { 0,3,3,0,1,2,2,1 };
-	for (int i = 0; i < 200; ++i) keyboard[i] = keyMap[(int)(keys[i])][keyboard[i]];
-	for (int i = 2; i < 7; ++i) mouse[i] = keyMap[SDL_GetRelativeMouseState(0, 0) & SDL_BUTTON(i - 1)][mouse[i]];
-
-	SDL_RenderSetScale(renderer, scale, scale);
-
-	if (mouse[2] == 1)
-	{
-		offsetx = mouse[0] - camerax * scale;
-		offsety = mouse[1] - cameray * scale;
-	}
-	if (mouse[2] == 2)
-	{
-		camerax = (mouse[0] - offsetx) / scale;
-		cameray = (mouse[1] - offsety) / scale;
-	}*/
-	//--------------------------------------------------------------------------------------------- INPUT
-
-	//SDL_GetMouseState(&mouse[0], &mouse[1]);
-	Uint32 mouseState = SDL_GetRelativeMouseState(&mouse[0], &mouse[1]);
-
-	const Uint8* keyboardState = SDL_GetKeyboardState(0);
-
-	int keyMap[2][4] = { 0,3,3,0,1,2,2,1 };
-	for (int i = 0; i < 200; ++i) keyboard[i] = keyMap[int(keyboardState[i])][keyboard[i]];
-	for (int i = 2; i < 7; ++i)
-	{
-		std::cout << int(mouseState & SDL_BUTTON(i - 1)) << std::endl;
-		//mouse[i] = keyMap[int(SDL_BUTTON(i - 1) & mouseState)][mouse[i]];
-	}
-	system("cls");
-
-	SDL_Event event;
-	while (SDL_PollEvent(&event))
-		switch (event.type)
-		{
-		case SDL_QUIT:
-			isActive = false;
-			break;
-		case SDL_WINDOWEVENT_HIDDEN:
-		case SDL_WINDOWEVENT_MINIMIZED:
-		case SDL_WINDOWEVENT_FOCUS_LOST:
-			windowShown = false;
-			break;
-		case SDL_WINDOWEVENT_SHOWN:
-		case SDL_WINDOWEVENT_MAXIMIZED:
-		case SDL_WINDOWEVENT_FOCUS_GAINED:
-		case SDL_WINDOWEVENT_RESTORED:
-			windowShown = true;
 			break;
 		case SDL_MOUSEMOTION:
 			/*data.mouseMotion.x = event.motion.xrel / scale;
@@ -244,7 +174,6 @@ bool App::Update()
 	{
 		SDL_Delay(_dt - dt);
 	}
-	/*system("cls");
 
 	/*static char title[256];
 	sprintf_s(title, 256, " | dt: %.3f | ", dt);
@@ -261,7 +190,7 @@ bool App::Update()
 
 	const unsigned int size = 512;
 	char debug[size];
-	sprintf_s(debug, size, "dt: %.5f", dt);
+	sprintf_s(debug, size, "dt: %.3f", dt);
 	DrawFont(font, { 255,255,255,255 }, 0, 0, 1, 100, 100, 1, debug);
 	sprintf_s(debug, size, "_dt: %.3f", _dt);
 	DrawFont(font, { 255,255,255,255 }, 0, 0, 1, 100, 150, 1, debug);
@@ -271,7 +200,12 @@ bool App::Update()
 	DrawFont(font, { 255,255,255,255 }, 0, 0, 1, 100, 250, 1, debug);
 	sprintf_s(debug, size, "fad: %d", sceneManager->fad);
 	DrawFont(font, { 255,255,255,255 }, 0, 0, 1, 100, 300, 1, debug);
-
+	for (int i = 0; i < 5; ++i)
+	{
+		sprintf_s(debug, size, "mouse[%d]: %d", i, mouse[i]);
+		DrawFont(font, { 255,255,255,255 }, 0, 0, 1, 100, 350 + 50 * i, 1, debug);
+	}
+	//moust create log-like DrawFont()
 	SDL_RenderPresent(renderer);
 
 	//--------------------------------------------------------------------------------------------- RETURN

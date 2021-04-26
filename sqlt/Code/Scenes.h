@@ -54,9 +54,6 @@ void SceneManager::Update(float dt, int* mouse, int* keyboard)
 	if (keyboard[SDL_SCANCODE_0] == 1) Fade(0);
 	if (keyboard[SDL_SCANCODE_1] == 1) Fade(1);
 	if (keyboard[SDL_SCANCODE_2] == 1) Fade(2);
-	if (mouse[2] == 1) printf("left\n");
-	if (mouse[3] == 1) printf("mid\n");
-	if (mouse[4] == 1) printf("right\n");
 
 	if (scene) scene->Update(dt);
 	if (fad)
