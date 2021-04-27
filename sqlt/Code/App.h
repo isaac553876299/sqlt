@@ -11,61 +11,49 @@
 #include "SDL_mixer.h"
 #include "Scenes.h"
 
-//------------------------------------------------------------------------------------------------- SHARE
-
-SDL_Renderer* renderer = nullptr;
-
-int* mouse = nullptr;
-int* keyboard = nullptr;
-
-float dt;
-
-float scale;
-
-float camerax;
-float cameray;
-
-TTF_Font* fonts[3];
-
-//------------------------------------------------------------------------------------------------- SHARE
-
 class App
 {
 public:
 
-	bool isActive;
-
-	SDL_Window* window = nullptr;
-
 	bool windowShown;
 
+	SDL_Window* window = nullptr;
+	SDL_Renderer* renderer = nullptr;
+
+	int* mouse = nullptr;
+	int* keyboard = nullptr;
+
+	float* camera = nullptr;
 	float offsetx;
 	float offsety;
-
+	
+	float dt;
 	float _dt;
 	Timer timer;
 	Timer seconds_count;
 	unsigned int fps_count = 0;
 	unsigned int delays_forced = 0;
 
-	SceneManager* sceneManager = nullptr;
+	Scene* scene = nullptr;
+	float alpha;
+	int fading_state;
 
 	App();
 	~App();
 
 	bool Update();
+	void Fade(int id);
+
+	TTF_Font* debugFont = nullptr;
 
 };
 
 App::App()
 {
-	isActive = true;
 	SDL_Init(SDL_INIT_EVERYTHING);
 	IMG_Init(IMG_INIT_PNG);
-	//Mix_Init();
+	Mix_Init(MIX_INIT_OGG);
 	TTF_Init();
-	fonts[0] = TTF_OpenFont("Assets/Fonts/Wedgie Regular.ttf", 36);
-	fonts[1] = TTF_OpenFont("Assets/Fonts/Name Here.ttf", 36);
 
 	pugi::xml_document config_doc;
 	pugi::xml_node config_node;
@@ -85,22 +73,24 @@ App::App()
 	window = SDL_CreateWindow(title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, windowFlags);
 	windowShown = true;
 
-	scale = config_node.child("render").attribute("scale").as_float(1.0f);
 	_dt = float(1.0f / config_node.child("render").attribute("fps").as_int(30));
 	Uint32 renderFlags = SDL_RENDERER_ACCELERATED;
 	if (config_node.child("render").attribute("vsync").as_bool(false)) renderFlags |= SDL_RENDERER_PRESENTVSYNC;
 	renderer = SDL_CreateRenderer(window, -1, renderFlags);
 	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 
-	camerax = 0.0f;
-	cameray = 0.0f;
+	camera = (float*)calloc(3, sizeof(float));
+	camera[0] = 0.0f;
+	camera[1] = 0.0f;
+	camera[2] = config_node.child("render").attribute("scale").as_float(1.0f);
+	
 	offsetx = 0.0f;
 	offsety = 0.0f;
 
 	mouse = (int*)calloc(5, sizeof(int));
 	keyboard = (int*)calloc(200, sizeof(int));
 
-	sceneManager = new SceneManager(1);
+	debugFont = TTF_OpenFont("Assets/Fonts/JMH Typewriter.ttf", 36);
 
 }
 
@@ -135,7 +125,7 @@ bool App::Update()
 		switch (event.type)
 		{
 		case SDL_QUIT:
-			isActive = false;
+			return false;
 			break;
 		case SDL_WINDOWEVENT_HIDDEN:
 		case SDL_WINDOWEVENT_MINIMIZED:
@@ -149,8 +139,8 @@ bool App::Update()
 			windowShown = true;
 			break;
 		case SDL_MOUSEWHEEL:
-			//if (event.wheel.y > 0) scale += 0.1f;
-			//if (event.wheel.y < 0) scale -= 0.1f;
+			if (event.wheel.y > 0) camera[2] += 0.1f;
+			if (event.wheel.y < 0) camera[2] -= 0.1f;
 			break;
 		case SDL_MOUSEMOTION:
 			/*data.mouseMotion.x = event.motion.xrel / scale;
@@ -160,17 +150,17 @@ bool App::Update()
 			break;
 		}
 
-	SDL_RenderSetScale(renderer, scale, scale);
+	SDL_RenderSetScale(renderer, camera[2], camera[2]);
 
 	if (mouse[2] == 1)
 	{
-		offsetx = mouse[0] - camerax * scale;
-		offsety = mouse[1] - cameray * scale;
+		offsetx = mouse[0] - camera[0] * camera[2];
+		offsety = mouse[1] - camera[1] * camera[2];
 	}
 	if (mouse[2] == 2)
 	{
-		camerax = (mouse[0] - offsetx) / scale;
-		cameray = (mouse[1] - offsety) / scale;
+		camera[0] = (mouse[0] - offsetx) / camera[2];
+		camera[1] = (mouse[1] - offsety) / camera[2];
 	}
 
 	//--------------------------------------------------------------------------------------------- FPS
@@ -199,37 +189,50 @@ bool App::Update()
 
 	//--------------------------------------------------------------------------------------------- STEP
 	
-	SetColor(255, 255, 255, 255);
-	RenderClear();
+	if (keyboard[SDL_SCANCODE_0] == 1) Fade(0);
 
-	sceneManager->Update();
-
-	//--------------------------------------------------------------------------------------------- DEBUG
-
-	/*const unsigned int size = 512;
-	char debug[size];
-	sprintf_s(debug, size, "dt: %.3f", dt);
-	DrawFont(font, { 255,255,255,255 }, 0, 0, 1, 100, 100, 1, debug);
-	sprintf_s(debug, size, "_dt: %.3f", _dt);
-	DrawFont(font, { 255,255,255,255 }, 0, 0, 1, 100, 150, 1, debug);
-	sprintf_s(debug, size, "fps: %.3f", float(1.0f / dt));
-	DrawFont(font, { 255,255,255,255 }, 0, 0, 1, 100, 200, 1, debug);
-	sprintf_s(debug, size, "alpha: %.2f", sceneManager->alpha);
-	DrawFont(font, { 255,255,255,255 }, 0, 0, 1, 100, 250, 1, debug);
-	sprintf_s(debug, size, "fad: %d", sceneManager->fad);
-	DrawFont(font, { 255,255,255,255 }, 0, 0, 1, 100, 300, 1, debug);
-	for (int i = 0; i < 5; ++i)
+	SDL_SetRenderDrawColor(renderer, 50, 50, 50, 255);
+	SDL_RenderClear(renderer);
+	//float dt, int* mouse, int* keyboard, SDL_Renderer* renderer, float* camera
+	if (scene) scene->Update(dt);
+	if (fading_state == 1)
 	{
-		sprintf_s(debug, size, "mouse[%d]: %d", i, mouse[i]);
-		DrawFont(font, { 255,255,255,255 }, 0, 0, 1, 100, 350 + 50 * i, 1, debug);
-	}*/
+		if (alpha < 255) alpha += 100.0f * dt;
+		else
+		{
+			fading_state = 2;
+		}
+	}
+	if (fading_state == 2)
+	{
+		if (alpha > 0) alpha -= 100.0f * dt;
+		else
+		{
+			fading_state = 0;
+		}
+	}
 
-	DrawFont(100, 100, 1, /*GetText("%.3f___%.3f", dt, _dt)*/"helol", { 255,0,0,255 }, 1);
+	SDL_SetRenderDrawColor(renderer, 0, 0, 0, alpha);
+	SDL_Rect rect{ 0,0,1280,720 };
+	SDL_RenderFillRect(renderer, &rect);
+	//SDL_RenderClear(renderer);
 
-	RenderPresent();
+	DrawFont(renderer, camera, debugFont, 100, 100, 0, 0, GetText("helol %d %.3f scale %.1f fade %.2f", fps_count, dt, camera[2], alpha), 1.0f, { 255,255,255,255 });
 
-	//--------------------------------------------------------------------------------------------- RETURN
-	return isActive;
+	SDL_RenderPresent(renderer);
+
+	return true;
+}
+
+void App::Fade(int id)
+{
+	delete scene;
+	scene = nullptr;
+	switch (id)
+	{
+	case 0: scene = new Scene0; break;
+	}
+	fading_state = 1;
 }
 
 #endif

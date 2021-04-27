@@ -23,8 +23,6 @@
     <ClInclude Include="Code\App.h" />
     <ClInclude Include="Code\Draw.h" />
     <ClInclude Include="Code\List.h" />
-    <ClInclude Include="Code\Scene1.h" />
-    <ClInclude Include="Code\Scene2.h" />
     <ClInclude Include="Code\Scenes.h" />
     <ClInclude Include="Code\Timers.h" />
   </ItemGroup>

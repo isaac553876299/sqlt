@@ -27,16 +27,10 @@
     <ClInclude Include="Code\Draw.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="Code\Scenes.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="Code\Timers.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="Code\Scene1.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Code\Scene2.h">
+    <ClInclude Include="Code\Scenes.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
