@@ -1,4 +1,4 @@
 <config>
   <window title="sqlt" fullscreen="false" borderless="false" resizable="false" width="1280" height="720"/>
-  <render scale="1.0f" fps="60" vsync="false"/>
+  <render scale="1.0f" fps="60" vsync="false" camerax="0.0f" cameray="0.0f"/>
 </config>

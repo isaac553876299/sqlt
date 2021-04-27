@@ -5,9 +5,10 @@
 #include "Draw.h"
 
 extern SDL_Renderer* renderer;
-extern float dt;
 extern int* mouse;
 extern int* keyboard;
+
+extern float dt;
 
 class Scene
 {

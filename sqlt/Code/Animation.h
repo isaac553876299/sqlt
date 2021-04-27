@@ -47,9 +47,9 @@ public:
 		else if (loop) Reset();
 	}
 
-	void Draw()
+	void Draw(int x, int y)
 	{
-		if (&frame[int(currentFrame)]) RenderCopy(texture, &frame[int(currentFrame)], { 0,0,100,100 });
+		if (&frame[int(currentFrame)]) RenderCopy(texture, x, y, &frame[int(currentFrame)]);
 	}
 
 };

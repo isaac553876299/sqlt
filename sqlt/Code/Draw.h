@@ -11,8 +11,24 @@ extern SDL_Renderer* renderer;
 extern float scale;
 extern float camerax;
 extern float cameray;
-
 extern TTF_Font* fonts[];
+
+SDL_Texture* LoadTexture(const char* file_path)
+{
+	return IMG_LoadTexture(renderer, file_path);
+}
+
+void RenderCopy(SDL_Texture* texture, int x, int y, const SDL_Rect* srcrect = nullptr, float size = 1.0f, bool use_camera = true, bool use_scale = true)
+{
+	const SDL_Rect dstrect =
+	{
+		(x + int(use_camera) * camerax) / scale,
+		(y + int(use_camera) * cameray) / scale,
+		srcrect->w * size * int(use_scale) * scale,
+		srcrect->h * size * int(use_scale) * scale
+	};
+	SDL_RenderCopy(renderer, texture, srcrect, &dstrect);
+}
 
 char* GetText(const char* _Format, ...)
 {
@@ -29,26 +45,30 @@ char* GetText(const char* _Format, ...)
 
 void DrawFont(int x, int y, float s, const char* text, SDL_Color color = { 0,0,0,255 }, unsigned int font_id = 0)
 {
-	SDL_Surface* textSurface = TTF_RenderText_Solid(fonts[font_id], text, color);//TTF_RenderText_Shaded//TTF_RenderText_Blended
+	SDL_Surface* textSurface = TTF_RenderText_Solid(fonts[0], text, color);//TTF_RenderText_Shaded//TTF_RenderText_Blended
 	SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
-	SDL_Rect rect{ (x + camerax) / scale,(y + cameray) / scale,0,0 };
+	/*SDL_Rect rect{ (x + camerax) / scale,(y + cameray) / scale,0,0 };
 	SDL_QueryTexture(textTexture, 0, 0, &rect.w, &rect.h);
 	rect.w *= s / scale;
-	rect.h *= s / scale;
-	SDL_RenderCopy(renderer, textTexture, 0, &rect);
+	rect.h *= s / scale;*/
+	RenderCopy(textTexture, x, y, 0, s, false, false);
 	SDL_FreeSurface(textSurface);
 	SDL_DestroyTexture(textTexture);
 }
 
-void RenderCopy(SDL_Texture* texture, int x, int y, const SDL_Rect* srcrect = nullptr, float size = 1.0f)
+void SetColor(Uint8 r, Uint8 g, Uint8 b, Uint8 a)
 {
-	const SDL_Rect dstrect = { (x + camerax) / scale,(y + cameray) / scale,srcrect->w * size * scale,srcrect->h * size * scale };
-	SDL_RenderCopy(renderer, texture, srcrect, &dstrect);
+	SDL_SetRenderDrawColor(renderer, r, g, b, a);
 }
 
-SDL_Texture* LoadTexture(const char* file_path)
+void RenderClear()
 {
-	return IMG_LoadTexture(renderer, file_path);
+	SDL_RenderClear(renderer);
+}
+
+void RenderPresent()
+{
+	SDL_RenderPresent(renderer);
 }
 
 #endif

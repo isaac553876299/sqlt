@@ -64,8 +64,8 @@ App::App()
 	IMG_Init(IMG_INIT_PNG);
 	//Mix_Init();
 	TTF_Init();
-	fonts[0] = TTF_OpenFont("Assets/Fonts/Name Here.ttf", 36);
-	fonts[1] = TTF_OpenFont("Assets/Fonts/Wedgie Regular.ttf", 36);
+	fonts[0] = TTF_OpenFont("Assets/Fonts/Wedgie Regular.ttf", 36);
+	fonts[1] = TTF_OpenFont("Assets/Fonts/Name Here.ttf", 36);
 
 	pugi::xml_document config_doc;
 	pugi::xml_node config_node;
@@ -199,8 +199,8 @@ bool App::Update()
 
 	//--------------------------------------------------------------------------------------------- STEP
 	
-	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-	SDL_RenderClear(renderer);
+	SetColor(255, 255, 255, 255);
+	RenderClear();
 
 	sceneManager->Update();
 
@@ -224,10 +224,9 @@ bool App::Update()
 		DrawFont(font, { 255,255,255,255 }, 0, 0, 1, 100, 350 + 50 * i, 1, debug);
 	}*/
 
-	DrawFont(100, 100, 1, GetText("%.3f___%.3f", dt, _dt), { 255,0,0,255 }, 1);
+	DrawFont(100, 100, 1, /*GetText("%.3f___%.3f", dt, _dt)*/"helol", { 255,0,0,255 }, 1);
 
-	//moust create log-like DrawFont()
-	SDL_RenderPresent(renderer);
+	RenderPresent();
 
 	//--------------------------------------------------------------------------------------------- RETURN
 	return isActive;

@@ -6,11 +6,11 @@
 class Scene1 : public Scene
 {
 public:
-	bool Update(float dt);
+	bool Update();
 	void Draw();
 };
 
-bool Scene1::Update(float dt)
+bool Scene1::Update()
 {
 	return true;
 }
