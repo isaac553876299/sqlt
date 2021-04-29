@@ -193,23 +193,17 @@ bool App::Update()
 
 	SDL_SetRenderDrawColor(renderer, 50, 50, 50, 255);
 	SDL_RenderClear(renderer);
-	//float dt, int* mouse, int* keyboard, SDL_Renderer* renderer, float* camera
+
 	if (scene) scene->Update(dt);
 	if (fading_state == 1)
 	{
-		if (alpha < 255) alpha += 100.0f * dt;
-		else
-		{
-			fading_state = 2;
-		}
+		if (alpha < 255) alpha += 200.0f * dt;
+		else fading_state = 2;
 	}
 	if (fading_state == 2)
 	{
-		if (alpha > 0) alpha -= 100.0f * dt;
-		else
-		{
-			fading_state = 0;
-		}
+		if (alpha > 0) alpha -= 200.0f * dt;
+		else fading_state = 0;
 	}
 
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, alpha);
@@ -217,7 +211,12 @@ bool App::Update()
 	SDL_RenderFillRect(renderer, &rect);
 	//SDL_RenderClear(renderer);
 
-	DrawFont(renderer, camera, debugFont, 100, 100, 0, 0, GetText("helol %d %.3f scale %.1f fade %.2f", fps_count, dt, camera[2], alpha), 1.0f, { 255,255,255,255 });
+	DrawFont(renderer, camera, debugFont, 100, 100, GetText("dt (%.3f) scale (%.1f) fade (%.2f)", dt, camera[2], alpha), 1.0f, 0);
+	DrawFont(renderer, camera, debugFont, 100, 200, GetText("GNYAA!!!!"), 1.0f, 1, { 255,128,128,255 }, { 255,255,255,128 });
+	DrawFont(renderer, camera, debugFont, 100, 300, GetText("GNYAA!!!!"), 1.0f, 1, { 128,128,255,255 }, { 255,255,255,128 });
+	DrawFont(renderer, camera, debugFont, 100, 400, GetText("GNYAA!!!!"), 1.0f, 1, { 128,255,128,255 }, { 255,255,255,128 });
+	DrawFont(renderer, camera, debugFont, 100, 500, GetText("GNYAA!!!!"), 1.0f, 2, { 255,255,255,50 });
+	DrawFont(renderer, camera, debugFont, 100, 600, GetText("GNYAA!!!!"), 1.0f, 0, { 255,255,255,50 });
 
 	SDL_RenderPresent(renderer);
 

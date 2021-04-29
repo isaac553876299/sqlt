@@ -17,7 +17,7 @@ public:
 
 	Animation(const char* texture_file_path, float _speed = 0.1f, bool _loop = true, unsigned int max = 10)
 	{
-		texture = LoadTexture(texture_file_path);
+		//texture = IMG_LoadTexture(texture_file_path);
 		speed = _speed;
 		loop = _loop;
 		frame = new SDL_Rect[max];
@@ -47,9 +47,9 @@ public:
 		else if (loop) Reset();
 	}
 
-	void Draw(int x, int y)
+	void Draw(SDL_Renderer* renderer, float* camera, int x, int y)
 	{
-		if (&frame[int(currentFrame)]) RenderCopy(texture, x, y, &frame[int(currentFrame)]);
+		if (&frame[int(currentFrame)]) RenderCopy(renderer, camera, texture, &frame[int(currentFrame)], x, y);
 	}
 
 };
