@@ -62,12 +62,12 @@ void RenderCopy(SDL_Renderer* renderer, float* camera, SDL_Texture* texture, SDL
 
 char* GetText(const char* _Format, ...)
 {
-	char result[4096];
-	va_list vaargs;
-	va_start(vaargs, _Format);
-	vsprintf_s(result, 4096, _Format, vaargs);
-	va_end(vaargs);
-	return result;
+	char _Buffer[4096];
+	va_list _ArgList;
+	va_start(_ArgList, _Format);
+	vsprintf_s(_Buffer, 4096, _Format, _ArgList);
+	va_end(_ArgList);
+	return _Buffer;
 }
 
 void DrawFont(SDL_Renderer* renderer, float* camera, TTF_Font* font, int dst_x, int dst_y, const char* text, float size = 1.0f, int style = 0, SDL_Color fg = { 0,0,0,255 }, SDL_Color bg = { 255,255,255,255 })

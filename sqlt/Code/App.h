@@ -139,8 +139,18 @@ bool App::Update()
 			windowShown = true;
 			break;
 		case SDL_MOUSEWHEEL:
-			if (event.wheel.y > 0) camera[2] += 0.1f;
-			if (event.wheel.y < 0) camera[2] -= 0.1f;
+			if (event.wheel.y > 0)
+			{
+				camera[2] += 0.1f;
+				camera[0] = (mouse[0] - offsetx) / camera[2];
+				camera[1] = (mouse[1] - offsety) / camera[2];
+			}
+			if (event.wheel.y < 0)
+			{
+				camera[2] -= 0.1f;
+				camera[0] /= camera[2];
+				camera[1] /= camera[2];
+			}
 			break;
 		case SDL_MOUSEMOTION:
 			/*data.mouseMotion.x = event.motion.xrel / scale;
