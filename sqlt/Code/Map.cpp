@@ -7,7 +7,7 @@
 
 struct TileSet
 {
-	SString	name;
+	const char*	name;
 	int	firstgid;
 	int margin;
 	int	spacing;
@@ -15,12 +15,8 @@ struct TileSet
 	int	tileHeight;
 
 	SDL_Texture* texture;
-	int	texWidth;
-	int	texHeight;
 	int	numTilesWidth;
 	int	numTilesHeight;
-	int	offsetX;
-	int	offsetY;
 
 	SDL_Rect GetTileRect(int id) const;
 };
@@ -29,15 +25,14 @@ struct Properties
 {
 	struct Property
 	{
-		SString name;
+		const char* name;
 		int value;
 	};
 
 	~Properties()
 	{
-		//...
-	}
 
+	}
 
 	int GetProperty(const char* name, int default_value = 0) const;
 
@@ -47,7 +42,7 @@ struct Properties
 
 struct MapLayer
 {
-	SString	name;
+	const char*	name;
 	int width;
 	int height;
 	unsigned int* data = nullptr;
@@ -65,7 +60,7 @@ struct MapLayer
 		data = nullptr;
 	}
 
-	inline unsigned int Get(int x, int y) const
+	unsigned int Get(int x, int y) const
 	{
 		return data[x + y * width];
 	}
@@ -85,7 +80,7 @@ class Map
 {
 public:
 
-	Map(pugi::xml_node& config);
+	Map();
 	~Map();
 
 	void Draw();
@@ -96,8 +91,12 @@ public:
 
 	bool Load(const char* path);
 
-	iPoint MapToWorld(int x, int y) const;
-	iPoint WorldToMap(int x, int y) const;
+	//MapToWorld
+	int mx2wx(int x) const;
+	int my2wy(int y) const;
+	//WorldToMap
+	int wx2mx(int x) const;
+	int wy2my(int y) const;
 
 	void ShowCollider() { drawColliders = !drawColliders; }
 
@@ -119,7 +118,6 @@ private:
 
 
 	pugi::xml_document mapFile;
-	const char* folder;
 	bool mapLoaded;
 
 	bool drawColliders = false;
@@ -127,9 +125,9 @@ private:
 	SDL_Texture* tileX = nullptr;
 };
 
-Map::Map(pugi::xml_node& config)
+Map::Map()
 {
-	folder = "Assets/Maps/";// config.child("folder").attribute("name").as_string("Assets/Maps/");
+	
 }
 
 Map::~Map()
@@ -154,8 +152,6 @@ void Map::DrawLayer(int num)
 	{
 		MapLayer* layer = data.layers[num];
 
-		app->render->scale = scale;
-
 		for (int y = 0; y < data.height; ++y)
 		{
 			for (int x = 0; x < data.width; ++x)
@@ -167,37 +163,20 @@ void Map::DrawLayer(int num)
 					TileSet* tileset = GetTilesetFromTileId(tileId);
 
 					SDL_Rect rec = tileset->GetTileRect(tileId);
-					iPoint pos = MapToWorld(x, y);
 
-					app->render->DrawTexture(tileset->texture, pos.x + tileset->offsetX, pos.y + tileset->offsetY, &rec);
+					RenderCopy(tileset->texture, &rec, mx2wx(x), my2wy(y));
 				}
 			}
 		}
-
-		app->render->scale = 1;
 	}
 }
 
-iPoint Map::MapToWorld(int x, int y) const
-{
-	iPoint ret;
-
-	ret.x = x * data.tileWidth;
-	ret.y = y * data.tileHeight;
-
-	return ret;
-}
-
-// L05: TODO 2: Add orthographic world to map coordinates
-iPoint Map::WorldToMap(int x, int y) const
-{
-	iPoint ret(0, 0);
-	ret.x = x / data.tileWidth;
-	ret.y = y / data.tileHeight;
-	// L05: TODO 3: Add the case for isometric maps to WorldToMap
-
-	return ret;
-}
+//MapToWorld
+int Map::mx2wx(int x) const { return x * data.tileWidth; }
+int Map::my2wy(int y) const { return y * data.tileHeight; }
+//WorldToMap
+int Map::wx2mx(int x) const { return x / data.tileWidth; }
+int Map::wy2my(int y) const { return y / data.tileHeight; }
 
 TileSet* Map::GetTilesetFromTileId(int id) const
 {
@@ -235,10 +214,9 @@ SDL_Rect TileSet::GetTileRect(int id) const
 	return rect;
 }
 
-// Called before quitting
 bool Map::CleanUp()
 {
-	LOG("Unloading map");
+	printf("Unloading map");
 
 	ListItem<TileSet*>* item;
 	item = data.tilesets.start;
@@ -268,20 +246,18 @@ bool Map::CleanUp()
 }
 
 // Load new map
-bool Map::Load(const char* filename)
+bool Map::Load(const char* file)
 {
 	bool ret = true;
-	SString tmp("%s%s", folder.GetString(), filename);
-
-	pugi::xml_parse_result result = mapFile.load_file(tmp.GetString());
+	
+	pugi::xml_parse_result result = mapFile.load_file(file);
 
 	if (result == NULL)
 	{
-		printf("Could not load map xml file %s. pugi error: %s", filename, result.description());
+		printf("Could not load map xml file %s. pugi error: %s", file, result.description());
 		ret = false;
 	}
 
-	// Load general info
 	if (ret == true)
 	{
 		ret = LoadMap();
@@ -322,10 +298,10 @@ bool Map::Load(const char* filename)
 
 	if (ret == true)
 	{
-		printf("Successfully parsed Successfully parsed map XML file: %s", filename);
+		printf("Successfully parsed Successfully parsed map XML file: %s", file);
 		printf("width: %d  height: %d", data.width, data.height);
 
-		for (int i = 0; i < data.tilesets.Count(); i++)
+		for (int i = 0; i < data.tilesets.size; i++)
 		{
 			printf("Tileset %d ----", i + 1);
 			printf("name: %s firstgid: %i", data.tilesets.At(i)->data->name.GetString(), data.tilesets.At(i)->data->firstgid);
@@ -389,9 +365,9 @@ bool Map::LoadTilesetImage(pugi::xml_node& tileset_node, TileSet* set)
 	else
 	{
 		// L03: DONE: Load Tileset image
-		set->texture = app->tex->Load(PATH(folder.GetString(), image.attribute("source").as_string()));
+		set->texture = LoadTexture(image.attribute("source").as_string());
 		int w, h;
-		SDL_QueryTexture(set->texture, NULL, NULL, &w, &h);
+		SDL_QueryTexture(set->texture, 0, 0, &w, &h);
 		set->texWidth = image.attribute("width").as_int();
 
 		if (set->texWidth <= 0)
@@ -454,7 +430,7 @@ bool Map::LoadProperties(pugi::xml_node& node, Properties& properties)
 
 int Properties::GetProperty(const char* value, int defaultValue) const
 {
-	for (int i = 0; i < list.Count(); i++)
+	for (int i = 0; i < list.size; i++)
 	{
 		if (strcmp(list.At(i)->data->name.GetString(), value) == 0)
 		{
@@ -494,8 +470,9 @@ void Map::LoadColliders()
 
 
 				int u = layer->Get(x, y);
-				iPoint pos = MapToWorld(x, y);
-				SDL_Rect n = { pos.x , pos.y, data.tileWidth, data.tileHeight };
+				int posx = mx2wx(x);
+				int posy = my2wy(y);
+				SDL_Rect n = { posx , posy, data.tileWidth, data.tileHeight };
 
 				if (u != 0)
 				{
