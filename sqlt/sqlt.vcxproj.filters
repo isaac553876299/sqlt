@@ -24,13 +24,13 @@
     <ClInclude Include="Code\List.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="Code\Draw.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="Code\Timers.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="Code\Scenes.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Code\Share.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

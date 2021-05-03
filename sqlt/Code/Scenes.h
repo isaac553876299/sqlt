@@ -1,12 +1,14 @@
 #ifndef __SCENES_H__
 #define __SCENES_H__
 
+#include "Share.h"
+
 class Scene
 {
 public:
 	Scene() {}
 	~Scene() {}
-	virtual bool Update(float dt) { return true; }
+	virtual bool Update() { return true; }
 };
 
 #endif
@@ -20,7 +22,7 @@ public:
 
 	Scene0();
 	~Scene0();
-	bool Update(float dt);
+	bool Update();
 
 };
 
@@ -34,7 +36,7 @@ Scene0::~Scene0()
 
 }
 
-bool Scene0::Update(float dt)
+bool Scene0::Update()
 {
 
 	return true;

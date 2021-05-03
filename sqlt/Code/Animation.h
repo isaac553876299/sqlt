@@ -1,7 +1,7 @@
 #ifndef __ANIMATION_H__
 #define __ANIMATION_H__
 
-#include "Draw.h"
+#include "Share.h"
 
 class Animation
 {
@@ -15,9 +15,9 @@ public:
 	float currentFrame;
 	unsigned int totalFrames;
 
-	Animation(const char* texture_file_path, float _speed = 0.1f, bool _loop = true, unsigned int max = 10)
+	Animation(const char* texture_file, float _speed = 0.1f, bool _loop = true, unsigned int max = 10)
 	{
-		//texture = IMG_LoadTexture(texture_file_path);
+		texture = LoadTexture(texture_file);
 		speed = _speed;
 		loop = _loop;
 		frame = new SDL_Rect[max];
@@ -41,15 +41,15 @@ public:
 		currentFrame = 0.0f;
 	}
 
-	void Update(float dt)
+	void Update()
 	{
-		if (currentFrame < totalFrames) currentFrame += speed * dt;
+		if (currentFrame < totalFrames) currentFrame += speed * share.dt;
 		else if (loop) Reset();
 	}
 
-	void Draw(SDL_Renderer* renderer, float* camera, int x, int y)
+	void Draw(int x, int y)
 	{
-		if (&frame[int(currentFrame)]) RenderCopy(renderer, camera, texture, &frame[int(currentFrame)], x, y);
+		if (&frame[int(currentFrame)]) RenderCopy(texture, &frame[int(currentFrame)], x, y);
 	}
 
 };
