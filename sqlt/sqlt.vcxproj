@@ -29,6 +29,7 @@
   <ItemGroup>
     <ClCompile Include="Code\External\pugi_xml\include\pugixml.cpp" />
     <ClCompile Include="Code\Main.cpp" />
+    <ClCompile Include="Code\Map.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

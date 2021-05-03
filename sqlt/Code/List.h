@@ -60,16 +60,28 @@ public:
 		--size;
 	}
 
+	tdata& operator [](int index)
+	{
+		ListItem<tdata>* tmpItem = start;
+		int i = 0;
+		while (tmpItem && i < index)
+		{
+			tmpItem = tmpItem->next;
+			++i;
+		}
+		return pItem->data;
+	}
+
 	void Clear()
 	{
-		ListItem<tdata>* tmpData = start;
+		ListItem<tdata>* tmpItem = start;
 		ListItem<tdata>* tmpNext;
 
-		while(tmpData)
+		while(tmpItem)
 		{
-			tmpNext = tmpData->next;
-			delete tmpData;
-			tmpData = tmpNext;
+			tmpNext = tmpItem->next;
+			delete tmpItem;
+			tmpItem = tmpNext;
 		}
 
 		start = end = nullptr;
