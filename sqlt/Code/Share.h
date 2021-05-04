@@ -8,6 +8,8 @@
 
 #include "stdarg.h"
 
+#include "Scenes.h"
+
 #define KEY_IDLE(x) share.keyboard[x] == 0
 #define KEY_DOWN(x) share.keyboard[x] == 1
 #define KEY_REPEAT(x) share.keyboard[x] == 2
@@ -20,6 +22,8 @@ struct Share
 	int* keyboard = nullptr;
 	float* view = nullptr;
 	float dt = 0.0f;
+
+	Scene* scene = nullptr;
 };
 Share share;
 

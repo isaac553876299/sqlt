@@ -21,9 +21,9 @@
   <ItemGroup>
     <ClInclude Include="Code\Animation.h" />
     <ClInclude Include="Code\App.h" />
-    <ClInclude Include="Code\Collider.h" />
     <ClInclude Include="Code\Collisions.h" />
     <ClInclude Include="Code\Map.h" />
+    <ClInclude Include="Code\Scene0.h" />
     <ClInclude Include="Code\Share.h" />
     <ClInclude Include="Code\List.h" />
     <ClInclude Include="Code\Scenes.h" />

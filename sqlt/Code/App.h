@@ -7,7 +7,6 @@
 #include "Timers.h"
 #include "List.h"
 #include "Share.h"
-#include "Scenes.h"
 
 class App
 {
@@ -26,7 +25,6 @@ public:
 	unsigned int fps_count;
 	unsigned int delays_forced;
 
-	Scene* scene = nullptr;
 	float alpha;
 	int fading_state;
 
@@ -197,7 +195,7 @@ bool App::Update()
 	SetRenderDrawColor(255, 255, 255, 255);
 	RenderClear();
 
-	if (scene) scene->Update();
+	if (share.scene) share.scene->Update();
 	if (fading_state == 1)
 	{
 		if (alpha <= 255) alpha += 200.0f * share.dt; //'<' may stuck at 0
@@ -234,14 +232,14 @@ bool App::Update()
 
 void App::Fade(int id)
 {
-	delete scene;
-	scene = nullptr;
+	delete share.scene;
+	share.scene = nullptr;
 	switch (id)
 	{
-	case 0: scene = new Scene0; break;
-	case 1: scene = new Scene0; break;
-	case 2: scene = new Scene0; break;
-	case 3: scene = new Scene0; break;
+	case 0: share.scene = new Scene0; break;
+	case 1: share.scene = new Scene0; break;
+	case 2: share.scene = new Scene0; break;
+	case 3: share.scene = new Scene0; break;
 	}
 	fading_state = 1;
 }

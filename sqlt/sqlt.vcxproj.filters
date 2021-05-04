@@ -36,10 +36,10 @@
     <ClInclude Include="Code\Map.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="Code\Collider.h">
+    <ClInclude Include="Code\Collisions.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="Code\Collisions.h">
+    <ClInclude Include="Code\Scene0.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

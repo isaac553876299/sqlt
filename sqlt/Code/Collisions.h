@@ -3,8 +3,38 @@
 
 #define MAX_COLLIDERS 2000
 
-#include "Collider.h"
 #include "Share.h"
+
+enum class ColliderType
+{
+	PLAYER,
+	WALL,
+
+	MAX
+};
+
+struct Collider
+{
+	SDL_Rect rect;
+	ColliderType type;
+	bool pendingToDelete = false;
+
+	Collider(SDL_Rect rectangle, ColliderType type);
+
+	void SetPos(int x, int y);
+};
+
+Collider::Collider(SDL_Rect rectangle, ColliderType _type)
+{
+	rect = rectangle;
+	type = _type;
+}
+
+void Collider::SetPos(int x, int y)
+{
+	rect.x = x;
+	rect.y = y;
+}
 
 class Collisions
 {
@@ -14,10 +44,8 @@ public:
 
 	void Update(float dt);
 	void Draw();
-	void CleanUp();
 
 	Collider* AddCollider(SDL_Rect rect, ColliderType type);
-	Collider* AddDynamicCollider(SDL_Rect rect, ColliderType type);
 
 	void RemoveCollider(Collider* collider);
 
@@ -51,6 +79,18 @@ Collisions::Collisions()
 	matrix[ColliderType::MAX][ColliderType::MAX] = false;
 }
 
+Collisions::~Collisions()
+{
+	for (unsigned int i = 0; i < MAX_COLLIDERS; ++i)
+	{
+		if (colliders[i])
+		{
+			delete colliders[i];
+			colliders[i] = nullptr;
+		}
+	}
+}
+
 void Collisions::Update(float dt)
 {
 	for (unsigned int i = 0; i < MAX_COLLIDERS; ++i)
@@ -80,13 +120,14 @@ void Collisions::Update(float dt)
 
 			c2 = colliders[k];
 
-			if (matrix[c1->type][c2->type] && c1->Intersects(c2->rect))
+			if (matrix[c1->type][c2->type] && SDL_HasIntersection(&c1->rect, &c2->rect))
 			{
 				for (unsigned int i = 0; i < MAX_LISTENERS; ++i)
 					if (c1->listeners[i]) c1->listeners[i]->OnCollision(c1, c2);
 
 				for (unsigned int i = 0; i < MAX_LISTENERS; ++i)
 					if (c2->listeners[i]) c2->listeners[i]->OnCollision(c2, c1);
+
 			}
 
 		}
@@ -110,18 +151,6 @@ void Collisions::Draw()
 			}
 
 			RenderFillRect(colliders[i]->rect.x, colliders[i]->rect.y, colliders[i]->rect.w, colliders[i]->rect.h);
-		}
-	}
-}
-
-void Collisions::CleanUp()
-{
-	for (unsigned int i = 0; i < MAX_COLLIDERS; ++i)
-	{
-		if (colliders[i])
-		{
-			delete colliders[i];
-			colliders[i] = nullptr;
 		}
 	}
 }
