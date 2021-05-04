@@ -96,6 +96,7 @@ App::~App()
 {
 	free(share.mouse);
 	free(share.keyboard);
+	free(share.view);
 
 	SDL_DestroyRenderer(share.renderer);
 	SDL_DestroyWindow(window);
@@ -191,7 +192,7 @@ bool App::Update()
 	sprintf_s(title, 256, " | dt: %.3f | ", dt);
 	SDL_SetWindowTitle(window, title);*/
 
-	if (share.keyboard[SDL_SCANCODE_0] == 1) Fade(0);
+	if (KEY_DOWN(SDL_SCANCODE_0)) Fade(0);
 
 	SetRenderDrawColor(255, 255, 255, 255);
 	RenderClear();

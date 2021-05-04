@@ -9,12 +9,9 @@ struct TileSet
 {
 	const char* name;
 	int	first_id;
-	int margin;
-	int	spacing;
-	int	tile_w;
-	int	tile_h;
-	int	tileset_w;
-	int	tileset_h;
+	int margin, spacing;
+	int	tile_w, tile_h;
+	int	amount_w, amount_h;
 	SDL_Texture* texture;
 
 	SDL_Rect GetTileRect(int id) const;
@@ -33,8 +30,7 @@ struct Properties
 struct MapLayer
 {
 	const char* name;
-	int width;
-	int height;
+	int width, height;
 	unsigned int* data = nullptr;
 	Properties properties;
 
@@ -44,17 +40,14 @@ struct MapLayer
 
 struct WalkabilityMap
 {
-	int width;
-	int height;
+	int width, height;
 	bool* buffer = nullptr;
 };
 
 struct MapData
 {
-	int width;
-	int	height;
-	int	tile_w;
-	int	tile_h;
+	int width, height;
+	int	tile_w, tile_h;
 	List<TileSet*> tilesets;
 	List<MapLayer*> layers;
 	WalkabilityMap walkable;
@@ -75,7 +68,6 @@ public:
 	void Load(const char* path);
 
 	void Draw();
-	void DrawLayer(int num);
 
 	//MapToWorld
 	int mx2wx(int x) const;
@@ -103,10 +95,9 @@ Map::Map()
 Map::~Map()
 {
 	printf("Unloading map");
-
 	data.tilesets.Clear();
 	data.layers.Clear();
-
+	delete[] data.walkable.buffer;
 	mapFile.reset();
 }
 
@@ -116,28 +107,20 @@ void Map::Draw()
 	{
 		for (int i = 0; i < data.layers.size; ++i)
 		{
-			if ((data.layers[i]->properties.GetProperty("draw", 1) != 0) || drawColliders) DrawLayer(i);
-		}
-	}
-}
-
-void Map::DrawLayer(int num)
-{
-	if (num < data.layers.size)
-	{
-		for (int y = 0; y < data.height; ++y)
-		{
-			for (int x = 0; x < data.width; ++x)
+			if ((data.layers[i]->properties.GetProperty("draw", 1) != 0) || drawColliders)
 			{
-				int tileId = data.layers[num]->Get(x, y);
-
-				if (tileId > 0)
+				for (int y = 0; y < data.height; ++y)
 				{
-					TileSet* tileset = GetTilesetFromTileId(tileId);
-
-					SDL_Rect rect = tileset->GetTileRect(tileId);
-
-					RenderCopy(tileset->texture, &rect, mx2wx(x), my2wy(y));
+					for (int x = 0; x < data.width; ++x)
+					{
+						int tileId = data.layers[i]->Get(x, y);
+						if (tileId > 0)
+						{
+							TileSet* tileset = GetTilesetFromTileId(tileId);
+							SDL_Rect rect = tileset->GetTileRect(tileId);
+							RenderCopy(tileset->texture, &rect, mx2wx(x), my2wy(y));
+						}
+					}
 				}
 			}
 		}
@@ -179,8 +162,8 @@ SDL_Rect TileSet::GetTileRect(int id) const
 	int relativeId = id - first_id;
 	SDL_Rect rect =
 	{
-		margin + ((tile_w + spacing) * (relativeId % tileset_w)),
-		margin + ((tile_h + spacing) * (relativeId / tileset_w)),
+		margin + ((tile_w + spacing) * (relativeId % amount_w)),
+		margin + ((tile_h + spacing) * (relativeId / amount_w)),
 		tile_w,
 		tile_h
 	};
@@ -239,8 +222,8 @@ TileSet* Map::LoadTileset(pugi::xml_node& tileset_node)
 	set->spacing = tileset_node.attribute("spacing").as_int(0);
 	set->tile_h = tileset_node.attribute("tileheight").as_int(0);
 	set->tile_w = tileset_node.attribute("tilewidth").as_int(0);
-	set->tileset_w = tileset_node.attribute("columns").as_int(0);
-	set->tileset_h = tileset_node.attribute("tilecount").as_int(0) / set->tileset_w;
+	set->amount_w = tileset_node.attribute("columns").as_int(0);
+	set->amount_h = tileset_node.attribute("tilecount").as_int(0) / set->amount_w;
 	set->texture = LoadTexture(tileset_node.child("image").attribute("source").as_string());
 	//set width/height num using texture size and tile size
 	return set;

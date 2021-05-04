@@ -27,6 +27,7 @@ public:
 
 	~Animation()
 	{
+		SDL_DestroyTexture(texture);
 		delete[] frame;
 		frame = nullptr;
 	}
