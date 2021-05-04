@@ -60,10 +60,17 @@ public:
 		--size;
 	}
 
-	tdata& operator [](int index)
+	tdata& operator [](unsigned int index)
 	{
 		ListItem<tdata>* tmpItem = start;
-		for (int i = 0; tmpItem && i < index; ++i) tmpItem = tmpItem->next;
+		for (unsigned int i = 0; tmpItem && i < index; ++i) tmpItem = tmpItem->next;
+		return tmpItem->data;
+	}
+
+	/*const*/ tdata& operator [](unsigned int index) const
+	{
+		ListItem<tdata>* tmpItem = start;
+		for (unsigned int i = 0; tmpItem && i < index; ++i) tmpItem = tmpItem->next;
 		return tmpItem->data;
 	}
 

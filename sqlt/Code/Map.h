@@ -20,16 +20,14 @@ struct TileSet
 	SDL_Rect GetTileRect(int id) const;
 };
 
+struct Property { const char* name; int value; };
 struct Properties
 {
-	struct Property { const char* name; int value; };
 	List<Property*> list;
 	Property property;
 
 	~Properties() { list.Clear(); }
-
 	int GetProperty(const char* name, int default_value = 0) const;
-
 };
 
 struct MapLayer
@@ -41,9 +39,14 @@ struct MapLayer
 	Properties properties;
 
 	~MapLayer() { delete data; data = nullptr; }
-
 	unsigned int Get(int x, int y) const { return data[x + y * width]; }
+};
 
+struct WalkabilityMap
+{
+	int width;
+	int height;
+	bool* buffer = nullptr;
 };
 
 struct MapData
@@ -54,6 +57,7 @@ struct MapData
 	int	tile_h;
 	List<TileSet*> tilesets;
 	List<MapLayer*> layers;
+	WalkabilityMap walkable;
 };
 
 class Map
@@ -73,8 +77,6 @@ public:
 	void Draw();
 	void DrawLayer(int num);
 
-	void CleanUp();
-
 	//MapToWorld
 	int mx2wx(int x) const;
 	int my2wy(int y) const;
@@ -84,12 +86,12 @@ public:
 
 	void LoadMap();
 	TileSet* LoadTileset(pugi::xml_node& tileset_node);
-	MapLayer* LoadLayer(pugi::xml_node& node);
+	MapLayer* LoadLayer(pugi::xml_node& layer_node);
 	Properties* LoadProperties(pugi::xml_node& node);
-	TileSet* GetTilesetFromTileId(int id) const;
-	void LoadColliders();
 
-	void CreateWalkabilityMap(int& width, int& height, unsigned char** buffer) const;
+	TileSet* GetTilesetFromTileId(int id) const;
+
+	void LoadColliders();
 
 };
 
@@ -100,7 +102,12 @@ Map::Map()
 
 Map::~Map()
 {
+	printf("Unloading map");
 
+	data.tilesets.Clear();
+	data.layers.Clear();
+
+	mapFile.reset();
 }
 
 void Map::Draw()
@@ -180,20 +187,9 @@ SDL_Rect TileSet::GetTileRect(int id) const
 	return rect;
 }
 
-void Map::CleanUp()
-{
-	printf("Unloading map");
-
-	data.tilesets.Clear();
-	data.layers.Clear();
-
-	mapFile.reset();
-}
-
 void Map::Load(const char* file)
 {
 	pugi::xml_parse_result result = mapFile.load_file(file);
-
 	if (!result) printf("Could not load map xml file %s. pugi error: %s", file, result.description());
 
 	LoadMap();
@@ -201,10 +197,7 @@ void Map::Load(const char* file)
 	pugi::xml_node tileset = mapFile.child("map").child("tileset");
 	while (tileset)
 	{
-		TileSet* set = LoadTileset(tileset);
-
-		data.tilesets.Add(set);
-
+		data.tilesets.Add(LoadTileset(tileset));//leak?
 		tileset = tileset.next_sibling("tileset");
 	}
 
@@ -213,7 +206,7 @@ void Map::Load(const char* file)
 	{
 		MapLayer* lay = LoadLayer(layer);
 
-		data.layers.Add(lay);
+		data.layers.Add(lay);//order?
 
 		pugi::xml_node propertiesNode = layer.child("properties");
 		while (propertiesNode)
@@ -221,26 +214,20 @@ void Map::Load(const char* file)
 			lay->properties = *LoadProperties(propertiesNode);
 			propertiesNode = propertiesNode.next_sibling("properties");
 		}
-
 		layer = layer.next_sibling("layer");
 	}
 
 	printf("Successfully parsed map file: %s", file);
-
 	mapLoaded = true;
 }
 
 void Map::LoadMap()
 {
 	pugi::xml_node map = mapFile.child("map");
-	if (map)
-	{
-		data.width = map.attribute("width").as_int(0);
-		data.height = map.attribute("height").as_int(0);
-		data.tile_w = map.attribute("tilewidth").as_int(0);
-		data.tile_h = map.attribute("tileheight").as_int(0);
-	}
-	else printf("Error parsing map xml file: Cannot find 'map' tag.");
+	data.width = map.attribute("width").as_int(0);
+	data.height = map.attribute("height").as_int(0);
+	data.tile_w = map.attribute("tilewidth").as_int(0);
+	data.tile_h = map.attribute("tileheight").as_int(0);
 }
 
 TileSet* Map::LoadTileset(pugi::xml_node& tileset_node)
@@ -259,23 +246,23 @@ TileSet* Map::LoadTileset(pugi::xml_node& tileset_node)
 	return set;
 }
 
-MapLayer* Map::LoadLayer(pugi::xml_node& node)
+MapLayer* Map::LoadLayer(pugi::xml_node& layer_node)
 {
 	MapLayer* layer = new MapLayer;
-	layer->name = node.attribute("name").as_string();
-	layer->width = node.attribute("width").as_int(0);
-	layer->height = node.attribute("height").as_int(0);
+	layer->name = layer_node.attribute("name").as_string();
+	layer->width = layer_node.attribute("width").as_int(0);
+	layer->height = layer_node.attribute("height").as_int(0);
 
 	int size = layer->height * layer->width;
 	layer->data = new unsigned int[size];
 
-	pugi::xml_node tile = node.child("data").child("tile");
+	pugi::xml_node tile = layer_node.child("data").child("tile");
 	for (int i = 0; i < size; i++)
 	{
 		layer->data[i] = tile.attribute("gid").as_int(0);
 		tile = tile.next_sibling("tile");
 	}
-	layer->properties = *LoadProperties(node);
+	layer->properties = *LoadProperties(layer_node);
 	return layer;
 }
 
@@ -284,7 +271,7 @@ Properties* Map::LoadProperties(pugi::xml_node& node)
 	Properties* properties = new Properties;
 	pugi::xml_node property = node.child("property");
 
-	Properties::Property* Prop = new Properties::Property();
+	Property* Prop = new Property();
 
 	while (property)
 	{
@@ -298,70 +285,41 @@ Properties* Map::LoadProperties(pugi::xml_node& node)
 
 int Properties::GetProperty(const char* value, int defaultValue) const
 {
-	for (int i = 0; i < list.size; i++)
+	for (int i = 0; i < list.size; ++i)
 	{
-		if (strcmp(list[i]->data->name, value) == 0)
-		{
-			return list[i]->data->value;
-		}
+		if (strcmp(list[i]->name, value) == 0) return list[i]->value;
 	}
-
 	return defaultValue;
 }
 
 void Map::LoadColliders()
 {
-	if (mapLoaded == false) return;
-
 	ListItem<MapLayer*>* L = data.layers.start;
-	while (L)
+	//break earlier if item null
+	while (L && L->data->properties.GetProperty("Collisions", 1) == 0) L = L->next;
+	MapLayer* layer = L->data;
+
+	bool* buffer = new bool[layer->width * layer->height];
+	memset(buffer, 1, layer->width * layer->height);
+
+	for (int y = 0; y < layer->height; ++y)
 	{
-		MapLayer* layer = L->data;
-		if (layer->properties.GetProperty("Collisions", 1) == 1)
-		{
-			for (int y = 0; y < layer->height; ++y)
-			{
-				for (int x = 0; x < layer->width; ++x)
-				{
-					SDL_Rect rect = { mx2wx(x), my2wy(y), data.tile_w, data.tile_h };
-					if (layer->Get(x, y) != 0)
-					{
-						AddCollider(rect, Collider::Type::WALL);
-					}
-
-				}
-			}
-		}
-		L = L->next;
-	}
-}
-
-void Map::CreateWalkabilityMap(int& width, int& height, unsigned char** buffer) const
-{
-	ListItem<MapLayer*>* item = data.layers.start;
-
-	while (item && item->data->properties.GetProperty("Nodraw", 0) == 0) item = item->next;
-
-	MapLayer* layer = item->data;
-
-	unsigned char* map = new unsigned char[layer->width * layer->height];
-	//memset(map, 1, layer->width * layer->height);
-
-	for (int y = 0; y < data.height; ++y)
-	{
-		for (int x = 0; x < data.width; ++x)
+		for (int x = 0; x < layer->width; ++x)
 		{
 			int tileId = layer->Get(x, y);
 
+			//colliders
+			SDL_Rect rect = { mx2wx(x), my2wy(y), data.tile_w, data.tile_h };
+			if (tileId != 0) AddCollider(rect, Collider::Type::WALL);
+			//walkability
 			TileSet* tileset = (tileId > 0) ? GetTilesetFromTileId(tileId) : 0;
-
-			if (tileset) map[x + y * layer->width] = (tileId - tileset->first_id) > 0 ? 0 : 1;
+			if (tileset) buffer[x + y * layer->width] = (tileId - tileset->first_id) > 0 ? 0 : 1;
 		}
 	}
 
-	*buffer = map;
-	width = data.width;
-	height = data.height;
+	data.walkable.width = data.width;
+	data.walkable.height = data.height;
+	data.walkable.buffer = buffer;
 }
 
 #endif
