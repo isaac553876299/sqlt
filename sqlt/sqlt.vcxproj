@@ -22,6 +22,8 @@
     <ClInclude Include="Code\Animation.h" />
     <ClInclude Include="Code\App.h" />
     <ClInclude Include="Code\Collisions.h" />
+    <ClInclude Include="Code\DialogSystem.h" />
+    <ClInclude Include="Code\EntityManager.h" />
     <ClInclude Include="Code\Map.h" />
     <ClInclude Include="Code\Scene0.h" />
     <ClInclude Include="Code\Share.h" />
@@ -30,6 +32,8 @@
     <ClInclude Include="Code\Timers.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Code\DialogSystem.cpp" />
+    <ClCompile Include="Code\EntityManager.cpp" />
     <ClCompile Include="Code\External\pugi_xml\include\pugixml.cpp" />
     <ClCompile Include="Code\Main.cpp" />
   </ItemGroup>
