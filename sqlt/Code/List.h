@@ -63,13 +63,8 @@ public:
 	tdata& operator [](int index)
 	{
 		ListItem<tdata>* tmpItem = start;
-		int i = 0;
-		while (tmpItem && i < index)
-		{
-			tmpItem = tmpItem->next;
-			++i;
-		}
-		return pItem->data;
+		for (int i = 0; tmpItem && i < index; ++i) tmpItem = tmpItem->next;
+		return tmpItem->data;
 	}
 
 	void Clear()

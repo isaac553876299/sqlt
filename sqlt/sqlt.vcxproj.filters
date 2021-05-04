@@ -33,15 +33,15 @@
     <ClInclude Include="Code\Share.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="Code\Map.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Code\Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Code\External\pugi_xml\include\pugixml.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Code\Map.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
