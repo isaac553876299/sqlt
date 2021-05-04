@@ -36,6 +36,12 @@
     <ClInclude Include="Code\Map.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="Code\Collider.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Code\Collisions.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Code\Main.cpp">
