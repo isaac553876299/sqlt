@@ -28,6 +28,7 @@
     <ClInclude Include="Code\List.h" />
     <ClInclude Include="Code\Scenes.h" />
     <ClInclude Include="Code\Timers.h" />
+    <ClInclude Include="Code\UserInterface.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Code\External\pugi_xml\include\pugixml.cpp" />

@@ -32,9 +32,14 @@ public:
 		frame = nullptr;
 	}
 
-	void PushBack(const SDL_Rect& rect)
+	void PushBack(const SDL_Rect& rect, int repeats = 1)
 	{
-		frame[++totalFrames] = rect;
+		SDL_Rect r = rect;
+		for (int i = 0; i < repeats; ++i)
+		{
+			r.x += r.w * i;
+			frame[++totalFrames] = r;
+		}
 	}
 
 	void Reset()
