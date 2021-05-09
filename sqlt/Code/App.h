@@ -237,9 +237,6 @@ void App::Fade(int id)
 	switch (id)
 	{
 	case 0: share.scene = new Scene0; break;
-	case 1: share.scene = new Scene0; break;
-	case 2: share.scene = new Scene0; break;
-	case 3: share.scene = new Scene0; break;
 	}
 	fading_state = 1;
 }

@@ -17,49 +17,25 @@ struct Collider
 {
 	SDL_Rect rect;
 	ColliderType type;
-	bool pendingToDelete = false;
-
-	Collider(SDL_Rect rectangle, ColliderType type);
-
-	void SetPos(int x, int y);
+	bool collided;
 };
-
-Collider::Collider(SDL_Rect rectangle, ColliderType _type)
-{
-	rect = rectangle;
-	type = _type;
-}
-
-void Collider::SetPos(int x, int y)
-{
-	rect.x = x;
-	rect.y = y;
-}
 
 class Collisions
 {
 public:
-	Collisions();
-	virtual ~Collisions() {}
 
-	void Update(float dt);
+	Collider* colliders[MAX_COLLIDERS] = { nullptr };
+	bool debugDraw = false;
+
+	Collisions();
+	~Collisions() {}
+
+	void Update();
 	void Draw();
 
-	Collider* AddCollider(SDL_Rect rect, ColliderType type);
-
-	void RemoveCollider(Collider* collider);
-
-	void DebugRequest();
+	void AddCollider(SDL_Rect rect, ColliderType type);
 
 	bool matrix[ColliderType::MAX][ColliderType::MAX];
-
-private:
-	Collider* colliders[MAX_COLLIDERS] = { nullptr };
-
-	// The collision matrix. Defines the interaction for two collider types
-	// If set two false, collider 1 will ignore collider 2
-
-	bool debug = false;
 };
 
 Collisions::Collisions()
@@ -81,112 +57,63 @@ Collisions::Collisions()
 
 Collisions::~Collisions()
 {
+	delete[] colliders;
+}
+
+void Collisions::Update()
+{
 	for (unsigned int i = 0; i < MAX_COLLIDERS; ++i)
 	{
 		if (colliders[i])
 		{
-			delete colliders[i];
-			colliders[i] = nullptr;
-		}
-	}
-}
-
-void Collisions::Update(float dt)
-{
-	for (unsigned int i = 0; i < MAX_COLLIDERS; ++i)
-	{
-		if (colliders[i] && colliders[i]->pendingToDelete)
-		{
-			delete colliders[i];
-			colliders[i] = nullptr;
-		}
-	}
-
-	Collider* c1;
-	Collider* c2;
-
-	for (unsigned int i = 0; i < MAX_COLLIDERS; ++i)
-	{
-		// skip empty colliders
-		if (!colliders[i]) continue;
-
-		c1 = colliders[i];
-
-		// avoid checking collisions already checked
-		for (unsigned int k = i + 1; k < MAX_COLLIDERS; ++k)
-		{
-			// skip empty colliders
-			if (!colliders[k]) continue;
-
-			c2 = colliders[k];
-
-			if (matrix[c1->type][c2->type] && SDL_HasIntersection(&c1->rect, &c2->rect))
+			for (unsigned int j = 0; j < MAX_COLLIDERS; ++j)
 			{
-				for (unsigned int i = 0; i < MAX_LISTENERS; ++i)
-					if (c1->listeners[i]) c1->listeners[i]->OnCollision(c1, c2);
+				if (colliders[j])
+				{
+					if (matrix[colliders[i]->type][colliders[j]->type]
+						&& SDL_HasIntersection(&colliders[i]->rect, &colliders[j]->rect)
+						&& !colliders[i]->collided && !colliders[j]->collided)
+					{
+						colliders[i]->collided = true;
+						colliders[j]->collided = true;
 
-				for (unsigned int i = 0; i < MAX_LISTENERS; ++i)
-					if (c2->listeners[i]) c2->listeners[i]->OnCollision(c2, c1);
-
+					}
+				}
 			}
-
 		}
 	}
 }
 
 void Collisions::Draw()
 {
-	if (debug)
+	if (debugDraw)
 	{
-		Uint8 alpha = 128;
 		for (unsigned int i = 0; i < MAX_COLLIDERS; ++i)
 		{
-			if (!colliders[i]) continue;
-
-			switch (colliders[i]->type)
+			if (colliders[i])
 			{
-			case ColliderType::PLAYER: SetRenderDrawColor(0, 255, 0, alpha); break;
-			case ColliderType::WALL: SetRenderDrawColor(255, 0, 0, alpha); break;
-			case ColliderType::MAX: SetRenderDrawColor(0, 0, 0, alpha); break;
+				switch (colliders[i]->type)
+				{
+				case ColliderType::PLAYER: SetRenderDrawColor(0, 255, 0, 128); break;
+				case ColliderType::WALL: SetRenderDrawColor(255, 0, 0, 128); break;
+				case ColliderType::MAX: SetRenderDrawColor(0, 0, 0, 128); break;
+				}
+				RenderFillRect(colliders[i]->rect.x, colliders[i]->rect.y, colliders[i]->rect.w, colliders[i]->rect.h);
 			}
-
-			RenderFillRect(colliders[i]->rect.x, colliders[i]->rect.y, colliders[i]->rect.w, colliders[i]->rect.h);
 		}
 	}
 }
 
-Collider* Collisions::AddCollider(SDL_Rect rect, ColliderType type)
+void Collisions::AddCollider(SDL_Rect rect, ColliderType type)
 {
-	Collider* ret = nullptr;
-
 	for (unsigned int i = 0; i < MAX_COLLIDERS; ++i)
 	{
 		if (!colliders[i])
 		{
-			ret = colliders[i] = new Collider(rect, type);
+			colliders[i] = new Collider{ rect, type, false };
 			break;
 		}
 	}
-
-	return ret;
-}
-
-void Collisions::RemoveCollider(Collider* collider)
-{
-	for (unsigned int i = 0; i < MAX_COLLIDERS; ++i)
-	{
-		if (colliders[i] == collider)
-		{
-			delete colliders[i];
-			colliders[i] = nullptr;
-			break;
-		}
-	}
-}
-
-void Collisions::DebugRequest()
-{
-	debug = !debug;
 }
 
 #endif
