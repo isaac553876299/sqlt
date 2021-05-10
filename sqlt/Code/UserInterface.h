@@ -12,8 +12,7 @@ enum class UIState
 	NORMAL,
 	FOCUS,
 	PRESS,
-	RELEASE,
-
+	RELEASE
 };
 
 enum class ControlType
@@ -24,37 +23,27 @@ enum class ControlType
 
 };
 
-class Control
+struct Control
 {
-public:
 	ControlType type;
 	const char* text;
 	UIState state;
-	SDL_Texture* texture;
 	SDL_Rect rect;
+};
+
+struct Button : public Control
+{
+
+};
+
+struct CheckBox : public Control
+{
 	bool toggled;
+};
+
+struct Slider : public Control
+{
 	float value;
-
-	Control(ControlType _type, const char* _text, const char* _texture, SDL_Rect _rect, UIState _state = UIState::NORMAL, bool _toggled = false, float _value = 0)
-	{
-		type = _type;
-		text = _text;
-		state = _state;
-		texture = LoadTexture(_texture);
-		rect = _rect;
-		toggled = _toggled;
-		value = _value;
-	}
-
-	~Control()
-	{
-		SDL_DestroyTexture(texture);
-	}
-
-	void Draw()
-	{
-
-	}
 };
 
 class UserInterface
@@ -65,6 +54,7 @@ public:
 
 	UserInterface();
 	~UserInterface();
+	void AddControl(ControlType type, const char* text, int x, int y, int w, int h);
 	void Update();
 	void Draw();
 
@@ -78,6 +68,12 @@ UserInterface::UserInterface()
 UserInterface::~UserInterface()
 {
 
+}
+
+void UserInterface::AddControl(ControlType type, const char* text, int x, int y, int w, int h)
+{
+	Control* control = new Control{ type,text,UIState::NORMAL,{x,y,w,h} };
+	controls->Add(control);
 }
 
 void UserInterface::Update()
