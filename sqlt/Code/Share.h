@@ -15,6 +15,11 @@
 #define KEY_REPEAT(x) share.keyboard[x] == 2
 #define KEY_UP(x) share.keyboard[x] == 3
 
+#define MOUSE_IDLE(x) share.mouse[x] == 0
+#define MOUSE_DOWN(x) share.mouse[x] == 1
+#define MOUSE_REPEAT(x) share.mouse[x] == 2
+#define MOUSE_UP(x) share.mouse[x] == 3
+
 struct Share
 {
 	SDL_Renderer* renderer = nullptr;

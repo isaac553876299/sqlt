@@ -5,12 +5,12 @@
 
 #include "Share.h"
 
-enum class ColliderType
+enum ColliderType
 {
-	PLAYER,
-	WALL,
+	COLLIDER_TYPE_PLAYER,
+	COLLIDER_TYPE_WALL,
 
-	MAX
+	COLLIDER_TYPE_MAX
 };
 
 struct Collider
@@ -35,24 +35,21 @@ public:
 
 	void AddCollider(SDL_Rect rect, ColliderType type);
 
-	bool matrix[ColliderType::MAX][ColliderType::MAX];
+	bool matrix[COLLIDER_TYPE_MAX][COLLIDER_TYPE_MAX];
+
 };
 
 Collisions::Collisions()
 {
 	for (unsigned int i = 0; i < MAX_COLLIDERS; ++i) colliders[i] = nullptr;
 
-	matrix[ColliderType::PLAYER][ColliderType::PLAYER] = false;
-	matrix[ColliderType::PLAYER][ColliderType::WALL] = true;
-	matrix[ColliderType::PLAYER][ColliderType::MAX] = false;
+	matrix[COLLIDER_TYPE_PLAYER][COLLIDER_TYPE_PLAYER] = false;
+	matrix[COLLIDER_TYPE_PLAYER][COLLIDER_TYPE_WALL] = true;
 
-	matrix[ColliderType::WALL][ColliderType::PLAYER] = true;
-	matrix[ColliderType::WALL][ColliderType::WALL] = false;
-	matrix[ColliderType::WALL][ColliderType::MAX] = false;
+	matrix[COLLIDER_TYPE_WALL][COLLIDER_TYPE_PLAYER] = true;
+	matrix[COLLIDER_TYPE_WALL][COLLIDER_TYPE_WALL] = false;
 
-	matrix[ColliderType::MAX][ColliderType::PLAYER] = false;
-	matrix[ColliderType::MAX][ColliderType::WALL] = false;
-	matrix[ColliderType::MAX][ColliderType::MAX] = false;
+
 }
 
 Collisions::~Collisions()
@@ -66,7 +63,7 @@ void Collisions::Update()
 	{
 		if (colliders[i])
 		{
-			for (unsigned int j = 0; j < MAX_COLLIDERS; ++j)
+			for (unsigned int j = i + 1; j < MAX_COLLIDERS; ++j)
 			{
 				if (colliders[j])
 				{
@@ -94,9 +91,8 @@ void Collisions::Draw()
 			{
 				switch (colliders[i]->type)
 				{
-				case ColliderType::PLAYER: SetRenderDrawColor(0, 255, 0, 128); break;
-				case ColliderType::WALL: SetRenderDrawColor(255, 0, 0, 128); break;
-				case ColliderType::MAX: SetRenderDrawColor(0, 0, 0, 128); break;
+				case ColliderType::COLLIDER_TYPE_PLAYER: SetRenderDrawColor(0, 255, 0, 128); break;
+				case ColliderType::COLLIDER_TYPE_WALL: SetRenderDrawColor(255, 0, 0, 128); break;
 				}
 				RenderFillRect(colliders[i]->rect.x, colliders[i]->rect.y, colliders[i]->rect.w, colliders[i]->rect.h);
 			}
