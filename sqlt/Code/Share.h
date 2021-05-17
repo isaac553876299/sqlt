@@ -1,5 +1,5 @@
-#ifndef __DRAW_H__
-#define __DRAW_H__
+#ifndef __SHARE_H__
+#define __SHARE_H__
 
 #include "SDL.h"
 #include "SDL_image.h"
@@ -8,17 +8,15 @@
 
 #include "stdarg.h"
 
-#include "Scenes.h"
-
 #define KEY_IDLE(x) share.keyboard[x] == 0
 #define KEY_DOWN(x) share.keyboard[x] == 1
 #define KEY_REPEAT(x) share.keyboard[x] == 2
 #define KEY_UP(x) share.keyboard[x] == 3
 
-#define MOUSE_IDLE(x) share.mouse[x] == 0
-#define MOUSE_DOWN(x) share.mouse[x] == 1
-#define MOUSE_REPEAT(x) share.mouse[x] == 2
-#define MOUSE_UP(x) share.mouse[x] == 3
+#define MOUSE_IDLE(x) share.mouse[x + 1] == 0
+#define MOUSE_DOWN(x) share.mouse[x + 1] == 1
+#define MOUSE_REPEAT(x) share.mouse[x + 1] == 2
+#define MOUSE_UP(x) share.mouse[x + 1] == 3
 
 struct Share
 {
@@ -28,7 +26,7 @@ struct Share
 	float* view = nullptr;
 	float dt = 0.0f;
 
-	Scene* scene = nullptr;
+	TTF_Font* debugFont = nullptr;
 };
 Share share;
 

@@ -7,6 +7,7 @@
 #include "Timers.h"
 #include "List.h"
 #include "Share.h"
+#include "Scenes.h"
 
 class App
 {
@@ -24,17 +25,14 @@ public:
 	Timer seconds_count;
 	unsigned int fps_count;
 	unsigned int delays_forced;
+	unsigned int seconds;
 
-	float alpha;
-	int fading_state;
+	SceneManager* sceneManager = nullptr;
 
 	App();
 	~App();
 
 	bool Update();
-	void Fade(int id);
-
-	TTF_Font* debugFont = nullptr;
 
 };
 
@@ -82,19 +80,24 @@ App::App()
 
 	fps_count = 0;
 	delays_forced = 0;
+	seconds = 0;
 
-	alpha = 0;
-	fading_state = 0;
+	sceneManager = new SceneManager;
 
-	debugFont = TTF_OpenFont("Assets/Fonts/JMH Typewriter.ttf", 36);
+	share.debugFont = TTF_OpenFont("Assets/Fonts/JMH Typewriter.ttf", 36);
 
 }
 
 App::~App()
 {
+	delete sceneManager;
+
 	free(share.mouse);
 	free(share.keyboard);
+
 	free(share.view);
+
+	TTF_CloseFont(share.debugFont);
 
 	SDL_DestroyRenderer(share.renderer);
 	SDL_DestroyWindow(window);
@@ -180,9 +183,9 @@ bool App::Update()
 	++fps_count;
 	if (seconds_count.ReadS() > 1)
 	{
+		++seconds;
 		seconds_count.Start();
-		system("cls");
-		printf("%d___%d", fps_count, delays_forced);
+		printf("s(%d)___f(%d)___d(%d)\n", seconds, fps_count, delays_forced);
 		fps_count = 0;
 		delays_forced = 0;
 	}
@@ -190,55 +193,18 @@ bool App::Update()
 	sprintf_s(title, 256, " | dt: %.3f | ", dt);
 	SDL_SetWindowTitle(window, title);*/
 
-	if (KEY_DOWN(SDL_SCANCODE_0)) Fade(0);
+	//--------------------------------------------------------------------------------------------- STEP
 
-	SetRenderDrawColor(255, 255, 255, 255);
-	RenderClear();
+	sceneManager->Update();
 
-	if (share.scene) share.scene->Update();
-	if (fading_state == 1)
-	{
-		if (alpha <= 255) alpha += 200.0f * share.dt; //'<' may stuck at 0
-		if (alpha > 255) //'else' results in flash
-		{
-			fading_state = 2;
-			alpha = 255;
-		}
-	}
-	if (fading_state == 2)
-	{
-		if (alpha >= 0) alpha -= 200.0f * share.dt; //'>' may stuck at 0
-		if (alpha < 0) //'else' results in flash
-		{
-			fading_state = 0;
-			alpha = 0;
-		}
-	}
+	if (KEY_DOWN(SDL_SCANCODE_0)) sceneManager->ChangeScene(SCENE_0);
 
-	SetRenderDrawColor(255, 0, 0, 255);
-	RenderFillRect(0, 0, 50, 50, 1, 0);
-	DrawFont(debugFont, 100, 100, GetText("dt (%.3f) scale (%.1f) fade (%.1f)", share.dt, share.view[2], alpha), 2.0f, 1, 0, 0);
-	DrawFont(debugFont, 100, 200, GetText("GNYAA!!!!"), 2.0f, 1, 0, 0);
-	DrawFont(debugFont, 100, 300, GetText("GNYAA!!!!"), 2.0f, 1, 0, 1);
-	DrawFont(debugFont, 100, 400, GetText("GNYAA!!!!"), 2.0f, 1, 0, 2);
+	sceneManager->Draw();
 
-	SetRenderDrawColor(0, 0, 0, alpha);
-	RenderFillRect(0, 0, 1280, 720, 0, 1);
-	//RenderClear();//no alpha?
-	RenderPresent();
+
+	//--------------------------------------------------------------------------------------------- RETURN
 
 	return true;
-}
-
-void App::Fade(int id)
-{
-	delete share.scene;
-	share.scene = nullptr;
-	switch (id)
-	{
-	case 0: share.scene = new Scene0; break;
-	}
-	fading_state = 1;
 }
 
 #endif

@@ -1,18 +1,16 @@
 #ifndef __USERINTERFACE_H__
 #define __USERINTERFACE_H__
 
-#include "SDL.h"
-#include "SDL_image.h"
-#include "List.h"
 #include "Share.h"
+#include "List.h"
 
-enum UIState
+enum ControlState
 {
-	UI_STATE_DISABLE,
-	UI_STATE_NORMAL,
-	UI_STATE_FOCUS,
-	UI_STATE_PRESS,
-	UI_STATE_RELEASE
+	CONTROL_STATE_DISABLE,
+	CONTROL_STATE_NORMAL,
+	CONTROL_STATE_FOCUS,
+	CONTROL_STATE_PRESS,
+	CONTROL_STATE_RELEASE
 };
 
 enum ControlType
@@ -23,58 +21,53 @@ enum ControlType
 
 };
 
-struct Control
+class Control
 {
+public:
 	ControlType type;
 	const char* text;
-	UIState state;
+	ControlState state;
 	SDL_Rect rect;
-	Control(ControlType _type, const char* _text, int x, int y, int w, int h)
+
+	bool toggled;
+
+	float value;
+
+	Control(ControlType _type, const char* _text, ControlState _state, int x, int y, int w, int h)
 	{
 		type = _type;
+		state = _state;
 		text = _text;
-		state = UI_STATE_NORMAL;
 		rect = { x,y,w,h };
-	}
-};
 
-struct Button : public Control
-{
-	Button(ControlType _type, const char* _text, int x, int y, int w, int h) : Control(_type, _text, x, y, w, h)
-	{
-		
-	}
-};
+		toggled = false;
 
-struct CheckBox : public Control
-{
-	bool toggled;
-	CheckBox(ControlType _type, const char* _text, int x, int y, int w, int h, bool _toggled = false) : Control(_type, _text, x, y, w, h)
-	{
-		toggled = _toggled;
+		value = 0;
 	}
-};
-
-struct Slider : public Control
-{
-	float value;
-	Slider(ControlType _type, const char* _text, int x, int y, int w, int h, float _value = 0.0f) : Control(_type, _text, x, y, w, h)
+	~Control()
 	{
-		value = _value;
+
+	}
+	void Update()
+	{
+
+	}
+	void Draw()
+	{
+
 	}
 };
 
 class UserInterface
 {
 public:
-
-	List<Control*>* controls = nullptr;
+	List<Control*> controls;
 
 	UserInterface();
 	~UserInterface();
 	void Update();
 	void Draw();
-
+	void AddControl(ControlType _type, const char* _text, ControlState _state, int x, int y, int w, int h);
 };
 
 UserInterface::UserInterface()
@@ -84,150 +77,107 @@ UserInterface::UserInterface()
 
 UserInterface::~UserInterface()
 {
-	controls->Clear();
+	controls.Clear();
 }
 
 void UserInterface::Update()
 {
-	SDL_Point mouse = { (share.mouse[0] - share.view[0]), (share.mouse[1] - share.view[1]) };
-	ListItem<Control*>* tmp = controls->start;
-	while (tmp)
+	SDL_Point mouse1 = { (share.mouse[0] - share.view[0]), (share.mouse[1] - share.view[1]) };
+	SDL_Point mouse = { share.mouse[0],share.mouse[1] };
+	ListItem<Control*>* control = controls.start;
+	while (control)
 	{
-		if (SDL_PointInRect(&mouse, &tmp->data->rect))
+		if (control->data->state != CONTROL_STATE_DISABLE)
 		{
-			tmp->data->state = UI_STATE_FOCUS;
-			if (MOUSE_DOWN(SDL_BUTTON_LEFT))
+			if (control->data->state == CONTROL_STATE_RELEASE)
 			{
-				switch (tmp->data->state)
+				control->data->state = CONTROL_STATE_NORMAL;
+			}
+			if (SDL_PointInRect(&mouse, &control->data->rect))
+			{/*return;//no overlay, right¿*/
+				if (control->data->state == CONTROL_STATE_NORMAL)
 				{
-				case UI_STATE_DISABLE:
-					switch (tmp->data->type)
-					{
-					case CONTROL_TYPE_BUTTON:
-
-						break;
-					case CONTROL_TYPE_CHECKBOX:
-
-						break;
-					case CONTROL_TYPE_SLIDER:
-
-						break;
-
-					}
-					break;
-				case UI_STATE_NORMAL:
-					switch (tmp->data->type)
-					{
-					case CONTROL_TYPE_BUTTON:
-
-						break;
-					case CONTROL_TYPE_CHECKBOX:
-
-						break;
-					case CONTROL_TYPE_SLIDER:
-
-						break;
-
-					}
-					break;
-				case UI_STATE_FOCUS:
-					switch (tmp->data->type)
-					{
-					case CONTROL_TYPE_BUTTON:
-
-						break;
-					case CONTROL_TYPE_CHECKBOX:
-
-						break;
-					case CONTROL_TYPE_SLIDER:
-
-						break;
-
-					}
-					break;
-				case UI_STATE_PRESS:
-					switch (tmp->data->type)
-					{
-					case CONTROL_TYPE_BUTTON:
-
-						break;
-					case CONTROL_TYPE_CHECKBOX:
-
-						break;
-					case CONTROL_TYPE_SLIDER:
-
-						break;
-
-					}
-					break;
-				case UI_STATE_RELEASE:
-					switch (tmp->data->type)
-					{
-					case CONTROL_TYPE_BUTTON:
-
-						break;
-					case CONTROL_TYPE_CHECKBOX:
-
-						break;
-					case CONTROL_TYPE_SLIDER:
-
-						break;
-
-					}
-					break;
+					control->data->state = CONTROL_STATE_FOCUS;
+				}
+				if (MOUSE_DOWN(SDL_BUTTON_LEFT))
+				{
+					control->data->state = CONTROL_STATE_PRESS;
 				}
 			}
-		}
-		tmp = tmp->next;
-	}
-
-	if (state != GuiControlState::DISABLED)
-	{
-		int mouseX, mouseY;
-		input->GetMousePosition(mouseX, mouseY);
-		mouseX -= app->render->camera.x;
-		mouseY -= app->render->camera.y;
-		// Check collision between mouse and button bounds
-		if ((mouseX > bounds.x) && (mouseX < (bounds.x + bounds.w)) &&
-			(mouseY > bounds.y) && (mouseY < (bounds.y + bounds.h)))
-		{
-			state = GuiControlState::FOCUSED;
-
-			if (input->GetMouseButtonDown(SDL_BUTTON_LEFT) == KeyState::KEY_REPEAT)
+			if (MOUSE_UP(SDL_BUTTON_LEFT))
 			{
-				state = GuiControlState::PRESSED;
-			}
-
-			// If mouse button pressed -> Generate event!
-			if (input->GetMouseButtonDown(SDL_BUTTON_LEFT) == KeyState::KEY_UP)
-			{
-				NotifyObserver();
+				control->data->state = CONTROL_STATE_RELEASE;
+				/*callback*/
 			}
 		}
-		else state = GuiControlState::NORMAL;
-	}
-}
 
-void UserInterface::Draw()
-{
-	ListItem<Control*>* tmp = controls->start;
-	while (tmp)
-	{
-		switch (tmp->data->type)
+		switch (control->data->type)
 		{
 		case CONTROL_TYPE_BUTTON:
 
 			break;
 		case CONTROL_TYPE_CHECKBOX:
-
+			if (control->data->state == CONTROL_STATE_RELEASE)
+			{
+				control->data->toggled = !control->data->toggled;
+			}
 			break;
 		case CONTROL_TYPE_SLIDER:
-
+			if (control->data->state == CONTROL_STATE_PRESS)
+			{
+				if (share.mouse[0] > control->data->rect.x + control->data->rect.h / 2 &&/*rect.h/2 lack float precision*/
+					share.mouse[0] < control->data->rect.x + control->data->rect.w - control->data->rect.h / 2)
+				{
+					control->data->value = float(share.mouse[0] - control->data->rect.x - control->data->rect.h / 2) / float(control->data->rect.w);
+				}
+			}
 			break;
-
 		}
-		tmp = tmp->next;
+
+		control = control->next;
 	}
+}
+
+void UserInterface::Draw()
+{
+	ListItem<Control*>* control = controls.start;
+	while (control)
+	{
+		switch (control->data->type)
+		{
+		case CONTROL_TYPE_BUTTON:
+			SetRenderDrawColor(255, 255, 50 * (control->data->state + 1), 255);
+			RenderFillRect(control->data->rect.x, control->data->rect.y, control->data->rect.w, control->data->rect.h, false, true);
+			if (control->data->state == CONTROL_STATE_FOCUS)
+			{
+				SetRenderDrawColor(255, 50 * (control->data->state + 1), 255, 255);
+				RenderFillRect(control->data->rect.x, control->data->rect.y, control->data->rect.w, control->data->rect.h, false, true);
+			}
+			break;
+		case CONTROL_TYPE_CHECKBOX:
+			SetRenderDrawColor(128, 128, 128, 255);
+			RenderFillRect(control->data->rect.x, control->data->rect.y, control->data->rect.w, control->data->rect.h, false, true);
+			if (control->data->toggled)
+			{
+				SetRenderDrawColor(255, 50 * (control->data->state + 1), 255, 255);
+				RenderFillRect(control->data->rect.x, control->data->rect.y, control->data->rect.w, control->data->rect.h, false, true);
+			}
+			break;
+		case CONTROL_TYPE_SLIDER:
+			SetRenderDrawColor(128, 128, 128, 255);
+			RenderFillRect(control->data->rect.x, control->data->rect.y, control->data->rect.w, control->data->rect.h, false, true);
+			SetRenderDrawColor(50 * (control->data->state + 1), 255, 255, 255);//if w>h...
+			RenderFillRect(control->data->rect.x + control->data->value * control->data->rect.w, control->data->rect.y, control->data->rect.h, control->data->rect.h, false, true);
+			break;
+		}
+		control = control->next;
+	}
+}
+
+void UserInterface::AddControl(ControlType _type, const char* _text, ControlState _state, int x, int y, int w, int h)
+{
+	Control* control = new Control(_type, _text, _state, x, y, w, h);
+	controls.Add(control);
 }
 
 #endif
