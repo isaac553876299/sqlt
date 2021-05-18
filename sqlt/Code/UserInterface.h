@@ -103,11 +103,11 @@ void UserInterface::Update()
 				{
 					control->data->state = CONTROL_STATE_PRESS;
 				}
-			}
-			if (MOUSE_UP(SDL_BUTTON_LEFT))
-			{
-				control->data->state = CONTROL_STATE_RELEASE;
-				/*callback*/
+				if (MOUSE_UP(SDL_BUTTON_LEFT))
+				{
+					control->data->state = CONTROL_STATE_RELEASE;
+					/*callback*/
+				}
 			}
 		}
 
