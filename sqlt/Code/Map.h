@@ -4,6 +4,7 @@
 #include "List.h"
 #include "pugixml.hpp"
 #include "Share.h"
+#include "Collisions.h"
 
 struct TileSet
 {
@@ -240,6 +241,38 @@ void Map::LoadColliders()
 
 			TileSet* tileset = (tileId > 0) ? GetTilesetFromTileId(tileId) : 0;
 			if (tileset) data.walkability[x + y * layer->width] = (tileId - tileset->firstgid) > 0 ? 0 : 1;
+		}
+	}
+
+	bool* added_colliders;
+	added_colliders = new bool[layer->width * layer->height];
+	memset(data.walkability, 0, layer->width * layer->height);
+
+	for (unsigned int y = 0; y < layer->height; ++y)
+	{
+		for (unsigned int x = 0; x < layer->width; ++x)
+		{
+			if (data.walkability[x + y * layer->width] && !added_colliders[x + y * layer->width])
+			{
+				unsigned int i_x = 1, i_y = 1;
+
+				while (data.walkability[(x + i_x) + y * layer->width] == true && added_colliders[(x + i_x) + y * layer->width] == false && ((x + i_x) < layer->width)) ++i_x;
+				/*&& (x + i_x) < width ::: limit search loop at priority axis (row/column) end*/
+				while (data.walkability[x + (y + i_y) * layer->width] == true && added_colliders[x + (y + i_y) * layer->width] == false) ++i_y;
+
+				if (i_x >= i_y)
+				{
+					SDL_Rect rect{ (x * data.tile_w),(y * data.tile_h),(i_x * data.tile_w),(data.tile_h) };
+					//AddCollider(rect, COLLIDER_TYPE_WALL);
+					for (unsigned int i = x; i < x + i_x; ++i) added_colliders[i + y * layer->height] = 1;
+				}
+				if (i_y > i_x)
+				{
+					SDL_Rect rect{ (x * data.tile_w),(y * data.tile_h),(data.tile_w),(i_y * data.tile_h) };
+					//AddCollider(rect, COLLIDER_TYPE_WALL);
+					for (unsigned int i = y; i < y + i_y; ++i) added_colliders[x + i * layer->height] = 1;
+				}
+			}
 		}
 	}
 }
