@@ -41,15 +41,16 @@ struct MapData
 class Map
 {
 public:
+	bool map_loaded;
 
 	MapData data;
 	pugi::xml_document mapFile;
-	bool drawColliders = false;
 
 	Collisions collisions;
 
 	Map();
 	~Map();
+	void Clear();
 
 	void Load(const char* path);
 
@@ -79,18 +80,24 @@ Map::Map()
 
 Map::~Map()
 {
-	printf("Unloading map");
+	Clear();
+}
+
+void Map::Clear()
+{
+	map_loaded = false;
 	data.tilesets.Clear();
 	data.layers.Clear();
 	delete[] data.walkability;
 	mapFile.reset();
+	collisions.Clear();
 }
 
 void Map::Draw()
 {
 	for (int i = 0; i < data.layers.size; ++i)
 	{
-		if (strcmp(data.layers[i]->name, "Collisions") || drawColliders)
+		if (strcmp(data.layers[i]->name, "Collisions"))
 		{
 			for (int y = 0; y < data.height; ++y)
 			{

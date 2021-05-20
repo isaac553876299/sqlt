@@ -81,7 +81,7 @@ SDL_Texture* LoadTexture(const char* file)
 	return IMG_LoadTexture(share.renderer, file);
 }
 
-void RenderFillRect(float _x, float _y, int _w, int _h, bool use_camera = true, bool avoid_scale = false)
+void RenderDrawRect(float _x, float _y, int _w, int _h, bool fill = false, bool use_camera = true, bool avoid_scale = false)
 {
 	float x = _x + share.view[0] * int(use_camera);
 	float y = _y + share.view[1] * int(use_camera);
@@ -95,7 +95,8 @@ void RenderFillRect(float _x, float _y, int _w, int _h, bool use_camera = true, 
 		h /= share.view[2];
 	}
 	SDL_Rect rect{ x,y,w,h };
-	SDL_RenderFillRect(share.renderer, &rect);
+	if (!fill) SDL_RenderDrawRect(share.renderer, &rect);
+	if (fill) SDL_RenderDrawRect(share.renderer, &rect);
 }
 
 void SetRenderDrawColor(Uint8 r, Uint8 g, Uint8 b, Uint8 a)

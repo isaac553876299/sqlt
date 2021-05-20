@@ -25,10 +25,11 @@ class Collisions
 public:
 
 	Collider* colliders[MAX_COLLIDERS] = { nullptr };
-	bool debugDraw = false;
+	bool debug_draw;
 
 	Collisions();
-	~Collisions() {}
+	~Collisions();
+	void Clear();
 
 	void Update();
 	void Draw();
@@ -41,7 +42,7 @@ public:
 
 Collisions::Collisions()
 {
-	for (unsigned int i = 0; i < MAX_COLLIDERS; ++i) colliders[i] = nullptr;
+	Clear();
 
 	matrix[COLLIDER_TYPE_PLAYER][COLLIDER_TYPE_PLAYER] = false;
 	matrix[COLLIDER_TYPE_PLAYER][COLLIDER_TYPE_WALL] = true;
@@ -54,7 +55,17 @@ Collisions::Collisions()
 
 Collisions::~Collisions()
 {
-	delete[] colliders;
+	Clear();
+}
+
+void Collisions::Clear()
+{
+	debug_draw = false;
+	for (unsigned int i = 0; i < MAX_COLLIDERS; ++i)
+	{
+		delete colliders[i];
+		colliders[i] = nullptr;
+	}
 }
 
 void Collisions::Update()
@@ -83,7 +94,7 @@ void Collisions::Update()
 
 void Collisions::Draw()
 {
-	if (debugDraw)
+	if (debug_draw)
 	{
 		for (unsigned int i = 0; i < MAX_COLLIDERS; ++i)
 		{
@@ -94,7 +105,7 @@ void Collisions::Draw()
 				case ColliderType::COLLIDER_TYPE_PLAYER: SetRenderDrawColor(0, 255, 0, 128); break;
 				case ColliderType::COLLIDER_TYPE_WALL: SetRenderDrawColor(255, 0, 0, 128); break;
 				}
-				RenderFillRect(colliders[i]->rect.x, colliders[i]->rect.y, colliders[i]->rect.w, colliders[i]->rect.h);
+				RenderDrawRect(colliders[i]->rect.x, colliders[i]->rect.y, colliders[i]->rect.w, colliders[i]->rect.h);
 			}
 		}
 	}

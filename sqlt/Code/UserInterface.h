@@ -21,9 +21,8 @@ enum ControlType
 
 };
 
-class Control
+struct Control
 {
-public:
 	ControlType type;
 	const char* text;
 	ControlState state;
@@ -33,29 +32,6 @@ public:
 
 	float value;
 
-	Control(ControlType _type, const char* _text, ControlState _state, int x, int y, int w, int h)
-	{
-		type = _type;
-		state = _state;
-		text = _text;
-		rect = { x,y,w,h };
-
-		toggled = false;
-
-		value = 0;
-	}
-	~Control()
-	{
-
-	}
-	void Update()
-	{
-
-	}
-	void Draw()
-	{
-
-	}
 };
 
 class UserInterface
@@ -65,6 +41,8 @@ public:
 
 	UserInterface();
 	~UserInterface();
+	void Clear();
+
 	void Update();
 	void Draw();
 	void AddControl(ControlType _type, const char* _text, ControlState _state, int x, int y, int w, int h);
@@ -76,6 +54,11 @@ UserInterface::UserInterface()
 }
 
 UserInterface::~UserInterface()
+{
+	Clear();
+}
+
+void UserInterface::Clear()
 {
 	controls.Clear();
 }
@@ -99,15 +82,18 @@ void UserInterface::Update()
 				{
 					control->data->state = CONTROL_STATE_FOCUS;
 				}
+
 				if (MOUSE_DOWN(SDL_BUTTON_LEFT))
 				{
 					control->data->state = CONTROL_STATE_PRESS;
 				}
-				if (MOUSE_UP(SDL_BUTTON_LEFT))
-				{
-					control->data->state = CONTROL_STATE_RELEASE;
-					/*callback*/
-				}
+				
+				
+			}
+			if (MOUSE_UP(SDL_BUTTON_LEFT) && control->data->state == CONTROL_STATE_PRESS)
+			{
+				control->data->state = CONTROL_STATE_RELEASE;
+				/*callback*/
 			}
 		}
 
@@ -146,37 +132,53 @@ void UserInterface::Draw()
 		switch (control->data->type)
 		{
 		case CONTROL_TYPE_BUTTON:
-			SetRenderDrawColor(255, 255, 50 * (control->data->state + 1), 255);
-			RenderFillRect(control->data->rect.x, control->data->rect.y, control->data->rect.w, control->data->rect.h, false, true);
 			if (control->data->state == CONTROL_STATE_FOCUS)
 			{
 				SetRenderDrawColor(255, 50 * (control->data->state + 1), 255, 255);
-				RenderFillRect(control->data->rect.x, control->data->rect.y, control->data->rect.w, control->data->rect.h, false, true);
+				RenderDrawRect(control->data->rect.x, control->data->rect.y, control->data->rect.w, control->data->rect.h, false, true);
 			}
 			break;
 		case CONTROL_TYPE_CHECKBOX:
-			SetRenderDrawColor(128, 128, 128, 255);
-			RenderFillRect(control->data->rect.x, control->data->rect.y, control->data->rect.w, control->data->rect.h, false, true);
 			if (control->data->toggled)
 			{
 				SetRenderDrawColor(255, 50 * (control->data->state + 1), 255, 255);
-				RenderFillRect(control->data->rect.x, control->data->rect.y, control->data->rect.w, control->data->rect.h, false, true);
+				RenderDrawRect(control->data->rect.x, control->data->rect.y, control->data->rect.w, control->data->rect.h, false, true);
 			}
 			break;
 		case CONTROL_TYPE_SLIDER:
-			SetRenderDrawColor(128, 128, 128, 255);
-			RenderFillRect(control->data->rect.x, control->data->rect.y, control->data->rect.w, control->data->rect.h, false, true);
 			SetRenderDrawColor(50 * (control->data->state + 1), 255, 255, 255);//if w>h...
-			RenderFillRect(control->data->rect.x + control->data->value * control->data->rect.w, control->data->rect.y, control->data->rect.h, control->data->rect.h, false, true);
+			RenderDrawRect(control->data->rect.x + control->data->value * control->data->rect.w, control->data->rect.y, control->data->rect.h, control->data->rect.h, false, true);
 			break;
 		}
+
+		switch (control->data->state)
+		{
+		case CONTROL_STATE_DISABLE: SetRenderDrawColor(255, 0, 0, 255); break;
+		case CONTROL_STATE_NORMAL: SetRenderDrawColor(255, 255, 255, 255); break;
+		case CONTROL_STATE_FOCUS: SetRenderDrawColor(0, 255, 0, 255); break;
+		case CONTROL_STATE_PRESS: SetRenderDrawColor(0, 0, 255, 255); break;
+		case CONTROL_STATE_RELEASE: SetRenderDrawColor(255, 255, 0, 255); break;
+		}
+
+		RenderDrawRect(control->data->rect.x, control->data->rect.y, control->data->rect.w, control->data->rect.h, false, true);
+
 		control = control->next;
 	}
 }
 
 void UserInterface::AddControl(ControlType _type, const char* _text, ControlState _state, int x, int y, int w, int h)
 {
-	Control* control = new Control(_type, _text, _state, x, y, w, h);
+	Control* control = new Control;
+
+	control->type = _type;
+	control->state = _state;
+	control->text = _text;
+	control->rect = { x,y,w,h };
+
+	control->toggled = false;
+
+	control->value = 0;
+
 	controls.Add(control);
 }
 

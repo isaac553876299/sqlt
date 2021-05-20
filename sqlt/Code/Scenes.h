@@ -8,7 +8,6 @@
 class Scene
 {
 public:
-	Map map;
 	Scene() {}
 	~Scene() {}
 	virtual void Update() {}
@@ -33,6 +32,9 @@ public:
 	Scene* next_scene = nullptr;
 	//SceneType scene_id;
 
+	Map map;
+	UserInterface userInterface;
+
 	enum FadingState
 	{
 		FADING_STATE_NONE,
@@ -48,26 +50,26 @@ public:
 	void Update();
 	void Draw();
 	void ChangeScene(SceneType _id);
-
-	UserInterface* ui = new UserInterface;
 };
 
 SceneManager::SceneManager()
 {
-	ui->controls.Add(new Control(CONTROL_TYPE_SLIDER, "sliderr", CONTROL_STATE_NORMAL, 500, 500, 200, 20));
-	ui->controls.Add(new Control(CONTROL_TYPE_CHECKBOX, "sliderr", CONTROL_STATE_NORMAL, 500, 400, 200, 20));
-	ui->controls.Add(new Control(CONTROL_TYPE_BUTTON, "sliderr", CONTROL_STATE_NORMAL, 500, 600, 200, 20));
+	userInterface.AddControl(CONTROL_TYPE_SLIDER, "sliderrr", CONTROL_STATE_NORMAL, 500, 500, 200, 20);
+	userInterface.AddControl(CONTROL_TYPE_CHECKBOX, "checkboxxx", CONTROL_STATE_NORMAL, 500, 400, 200, 20);
+	userInterface.AddControl(CONTROL_TYPE_BUTTON, "buttton", CONTROL_STATE_NORMAL, 500, 600, 200, 20);
 }
 
 SceneManager::~SceneManager()
 {
 	delete scene;
 	scene = nullptr;
+	map.Clear();
+	userInterface.Clear();
 }
 
 void SceneManager::Update()
 {
-	ui->Update();
+	userInterface.Update();
 	if (scene) scene->Update();
 
 	if (fading_state == FADING_STATE_TOBLACK)
@@ -83,7 +85,6 @@ void SceneManager::Update()
 			scene = nullptr;
 			scene = next_scene;
 			next_scene = nullptr;
-			//for (int i = 0; i < 999999; ++i);
 			printf("changing scene: %.3f seconds (%d ms)\n", change_scene_timer.ReadS(), change_scene_timer.ReadMs());
 		}
 	}
@@ -105,25 +106,27 @@ void SceneManager::Draw()
 
 	DrawFont(share.debugFont, 100, 100, GetText("dt (%.3f) scale (%.1f) fade (%.1f)", share.dt, share.view[2], alpha), 2.0f, 1, 0, 0);
 
-	ui->Draw();
+	userInterface.Draw();
 	if (scene) scene->Draw();
 
 	SetRenderDrawColor(0, 0, 0, alpha);
-	RenderFillRect(0, 0, 1280, 720, 0, 1);
+	RenderDrawRect(0, 0, 1280, 720, 0, 1);
 	//RenderClear();//no alpha?
 	RenderPresent();
 }
 
 void SceneManager::ChangeScene(SceneType _id)
 {
-	Timer create_scene_timer;
-	switch (_id)
+	if (fading_state == FADING_STATE_NONE)
 	{
-	case SCENE_0: next_scene = new Scene0; break;
+		Timer create_scene_timer;
+		switch (_id)
+		{
+		case SCENE_0: next_scene = new Scene0; break;
+		}
+		printf("creating new scene: %.3f seconds (%d ms)\n", create_scene_timer.ReadS(), create_scene_timer.ReadMs());
+		fading_state = FADING_STATE_TOBLACK;
 	}
-	//for (int i = 0; i < 999999; ++i);
-	printf("creating new scene: %.3f seconds (%d ms)\n", create_scene_timer.ReadS(), create_scene_timer.ReadMs());
-	fading_state = FADING_STATE_TOBLACK;
 }
 
 #endif
