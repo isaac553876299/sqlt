@@ -3,9 +3,12 @@
 
 #include "Share.h"
 
+#include "Map.h"
+
 class Scene
 {
 public:
+	Map map;
 	Scene() {}
 	~Scene() {}
 	virtual void Update() {}

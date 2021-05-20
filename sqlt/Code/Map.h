@@ -46,6 +46,8 @@ public:
 	pugi::xml_document mapFile;
 	bool drawColliders = false;
 
+	Collisions collisions;
+
 	Map();
 	~Map();
 
@@ -263,13 +265,13 @@ void Map::LoadColliders()
 				if (i_x >= i_y)
 				{
 					SDL_Rect rect{ (x * data.tile_w),(y * data.tile_h),(i_x * data.tile_w),(data.tile_h) };
-					//AddCollider(rect, COLLIDER_TYPE_WALL);
+					collisions.AddCollider(rect, COLLIDER_TYPE_WALL);
 					for (unsigned int i = x; i < x + i_x; ++i) added_colliders[i + y * layer->height] = 1;
 				}
 				if (i_y > i_x)
 				{
 					SDL_Rect rect{ (x * data.tile_w),(y * data.tile_h),(data.tile_w),(i_y * data.tile_h) };
-					//AddCollider(rect, COLLIDER_TYPE_WALL);
+					collisions.AddCollider(rect, COLLIDER_TYPE_WALL);
 					for (unsigned int i = y; i < y + i_y; ++i) added_colliders[x + i * layer->height] = 1;
 				}
 			}
