@@ -10,7 +10,7 @@ public:
 	SDL_Texture* texture = nullptr;
 	float speed;
 	bool loop;
-	SDL_Rect* frame = nullptr;
+	SDL_Rect* frames = nullptr;
 
 	float currentFrame;
 	unsigned int totalFrames;
@@ -20,7 +20,7 @@ public:
 		texture = LoadTexture(texture_file);
 		speed = _speed;
 		loop = _loop;
-		frame = new SDL_Rect[max];
+		frames = new SDL_Rect[max];
 		currentFrame = 0.0f;
 		totalFrames = 0;
 	}
@@ -28,8 +28,8 @@ public:
 	~Animation()
 	{
 		SDL_DestroyTexture(texture);
-		delete[] frame;
-		frame = nullptr;
+		delete[] frames;
+		frames = nullptr;
 	}
 
 	void PushBack(const SDL_Rect& rect, int repeats = 1)
@@ -38,7 +38,7 @@ public:
 		for (int i = 0; i < repeats; ++i)
 		{
 			r.x += r.w * i;
-			frame[++totalFrames] = r;
+			frames[++totalFrames] = r;
 		}
 	}
 
@@ -55,7 +55,7 @@ public:
 
 	void Draw(int x, int y)
 	{
-		if (&frame[int(currentFrame)]) RenderCopy(texture, &frame[int(currentFrame)], x, y);
+		if (&frames[int(currentFrame)]) RenderCopy(texture, &frames[int(currentFrame)], x, y);
 	}
 
 };

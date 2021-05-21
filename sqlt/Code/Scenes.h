@@ -50,13 +50,14 @@ public:
 	void Update();
 	void Draw();
 	void ChangeScene(SceneType _id);
+	void SwapScenePointer();
 };
 
 SceneManager::SceneManager()
 {
-	userInterface.AddControl(CONTROL_TYPE_SLIDER, "sliderrr", CONTROL_STATE_NORMAL, 500, 500, 200, 20);
-	userInterface.AddControl(CONTROL_TYPE_CHECKBOX, "checkboxxx", CONTROL_STATE_NORMAL, 500, 400, 200, 20);
-	userInterface.AddControl(CONTROL_TYPE_BUTTON, "buttton", CONTROL_STATE_NORMAL, 500, 600, 200, 20);
+	userInterface.AddControl(CONTROL_TYPE_BUTTON, "buttton", CONTROL_STATE_NORMAL, 500, 400, 200, 20);
+	userInterface.AddControl(CONTROL_TYPE_CHECKBOX, "checkboxxx", CONTROL_STATE_NORMAL, 500, 500, 200, 20);
+	userInterface.AddControl(CONTROL_TYPE_SLIDER, "sliderrr", CONTROL_STATE_NORMAL, 500, 600, 200, 20);
 }
 
 SceneManager::~SceneManager()
@@ -79,13 +80,7 @@ void SceneManager::Update()
 		{
 			fading_state = FADING_STATE_FROMBLACK;
 			alpha = 255;
-
-			Timer change_scene_timer;
-			delete scene;
-			scene = nullptr;
-			scene = next_scene;
-			next_scene = nullptr;
-			printf("changing scene: %.3f seconds (%d ms)\n", change_scene_timer.ReadS(), change_scene_timer.ReadMs());
+			SwapScenePointer();
 		}
 	}
 	if (fading_state == 2)
@@ -110,7 +105,7 @@ void SceneManager::Draw()
 	if (scene) scene->Draw();
 
 	SetRenderDrawColor(0, 0, 0, alpha);
-	RenderDrawRect(0, 0, 1280, 720, 0, 1);
+	RenderDrawRect(0, 0, 1280, 720, true, false, true);
 	//RenderClear();//no alpha?
 	RenderPresent();
 }
@@ -127,6 +122,16 @@ void SceneManager::ChangeScene(SceneType _id)
 		printf("creating new scene: %.3f seconds (%d ms)\n", create_scene_timer.ReadS(), create_scene_timer.ReadMs());
 		fading_state = FADING_STATE_TOBLACK;
 	}
+}
+
+void SceneManager::SwapScenePointer()
+{
+	Timer change_scene_timer;
+	delete scene;
+	scene = nullptr;
+	scene = next_scene;
+	next_scene = nullptr;
+	printf("changing scene: %.3f seconds (%d ms)\n", change_scene_timer.ReadS(), change_scene_timer.ReadMs());
 }
 
 #endif

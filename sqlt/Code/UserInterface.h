@@ -72,7 +72,7 @@ void UserInterface::Update()
 	{
 		if (control->data->state != CONTROL_STATE_DISABLE)
 		{
-			if (control->data->state == CONTROL_STATE_RELEASE)
+			if (control->data->state == CONTROL_STATE_RELEASE || control->data->state == CONTROL_STATE_FOCUS)
 			{
 				control->data->state = CONTROL_STATE_NORMAL;
 			}
@@ -81,14 +81,11 @@ void UserInterface::Update()
 				if (control->data->state == CONTROL_STATE_NORMAL)
 				{
 					control->data->state = CONTROL_STATE_FOCUS;
+					if (MOUSE_DOWN(SDL_BUTTON_LEFT))
+					{
+						control->data->state = CONTROL_STATE_PRESS;
+					}
 				}
-
-				if (MOUSE_DOWN(SDL_BUTTON_LEFT))
-				{
-					control->data->state = CONTROL_STATE_PRESS;
-				}
-				
-				
 			}
 			if (MOUSE_UP(SDL_BUTTON_LEFT) && control->data->state == CONTROL_STATE_PRESS)
 			{
@@ -111,11 +108,9 @@ void UserInterface::Update()
 		case CONTROL_TYPE_SLIDER:
 			if (control->data->state == CONTROL_STATE_PRESS)
 			{
-				if (share.mouse[0] > control->data->rect.x + control->data->rect.h / 2 &&/*rect.h/2 lack float precision*/
-					share.mouse[0] < control->data->rect.x + control->data->rect.w - control->data->rect.h / 2)
-				{
-					control->data->value = float(share.mouse[0] - control->data->rect.x - control->data->rect.h / 2) / float(control->data->rect.w);
-				}
+				control->data->value = float(share.mouse[0] - control->data->rect.x) / float(control->data->rect.w);
+				if (control->data->value < 0) control->data->value = 0;
+				if (control->data->value > 1) control->data->value = 1;
 			}
 			break;
 		}
@@ -132,22 +127,22 @@ void UserInterface::Draw()
 		switch (control->data->type)
 		{
 		case CONTROL_TYPE_BUTTON:
-			if (control->data->state == CONTROL_STATE_FOCUS)
+			if (control->data->state == CONTROL_STATE_PRESS)
 			{
-				SetRenderDrawColor(255, 50 * (control->data->state + 1), 255, 255);
-				RenderDrawRect(control->data->rect.x, control->data->rect.y, control->data->rect.w, control->data->rect.h, false, true);
+				SetRenderDrawColor(255, 0, 255, 255);
+				RenderDrawRect(control->data->rect.x, control->data->rect.y, control->data->rect.w, control->data->rect.h, true, false, true);
 			}
 			break;
 		case CONTROL_TYPE_CHECKBOX:
 			if (control->data->toggled)
 			{
-				SetRenderDrawColor(255, 50 * (control->data->state + 1), 255, 255);
-				RenderDrawRect(control->data->rect.x, control->data->rect.y, control->data->rect.w, control->data->rect.h, false, true);
+				SetRenderDrawColor(255, 0, 255, 255);
+				RenderDrawRect(control->data->rect.x, control->data->rect.y, control->data->rect.w, control->data->rect.h, true, false, true);
 			}
 			break;
 		case CONTROL_TYPE_SLIDER:
-			SetRenderDrawColor(50 * (control->data->state + 1), 255, 255, 255);//if w>h...
-			RenderDrawRect(control->data->rect.x + control->data->value * control->data->rect.w, control->data->rect.y, control->data->rect.h, control->data->rect.h, false, true);
+			SetRenderDrawColor(255, 0, 255, 255);//if w>h...
+			RenderDrawRect(control->data->rect.x + control->data->value * control->data->rect.w - control->data->rect.h / 2, control->data->rect.y, control->data->rect.h, control->data->rect.h, true, false, true);
 			break;
 		}
 
@@ -156,11 +151,11 @@ void UserInterface::Draw()
 		case CONTROL_STATE_DISABLE: SetRenderDrawColor(255, 0, 0, 255); break;
 		case CONTROL_STATE_NORMAL: SetRenderDrawColor(255, 255, 255, 255); break;
 		case CONTROL_STATE_FOCUS: SetRenderDrawColor(0, 255, 0, 255); break;
-		case CONTROL_STATE_PRESS: SetRenderDrawColor(0, 0, 255, 255); break;
-		case CONTROL_STATE_RELEASE: SetRenderDrawColor(255, 255, 0, 255); break;
+		case CONTROL_STATE_PRESS: SetRenderDrawColor(255, 255, 0, 255); break;
+		case CONTROL_STATE_RELEASE: SetRenderDrawColor(0, 255, 255, 255); break;
 		}
 
-		RenderDrawRect(control->data->rect.x, control->data->rect.y, control->data->rect.w, control->data->rect.h, false, true);
+		RenderDrawRect(control->data->rect.x, control->data->rect.y, control->data->rect.w, control->data->rect.h, false, false, true);
 
 		control = control->next;
 	}
