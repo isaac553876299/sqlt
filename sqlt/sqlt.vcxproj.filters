@@ -45,6 +45,9 @@
     <ClInclude Include="Code\UserInterface.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="Code\AssetsManager.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Code\Main.cpp">
