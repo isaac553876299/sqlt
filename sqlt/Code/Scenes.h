@@ -20,6 +20,7 @@ public:
 
 enum SceneType
 {
+	NONE,
 	SCENE_0,
 
 };
@@ -117,6 +118,7 @@ void SceneManager::ChangeScene(SceneType _id)
 		Timer create_scene_timer;
 		switch (_id)
 		{
+		case NONE: next_scene = nullptr;
 		case SCENE_0: next_scene = new Scene0; break;
 		}
 		printf("creating new scene: %.3f seconds (%d ms)\n", create_scene_timer.ReadS(), create_scene_timer.ReadMs());
